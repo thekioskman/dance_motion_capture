@@ -11,6 +11,7 @@ This guide explains how to set up a Python virtual environment and manage depend
 - [Activating the Virtual Environment](#activate-the-virtual-environment)
 - [Installing Packages](#installing-packages)
 - [Updating requirements.txt](#updating-requirementstxt)
+- [Running video comparison analysis](#running-video-comparison-analysis)
 
 ## Creating a Virtual Environment
 1. python -m venv env
@@ -29,4 +30,7 @@ This guide explains how to set up a Python virtual environment and manage depend
 
 ## Updating requirements.txt
 1. pip freeze > requirements.txt
+
+## Running video comparison analysis
+1. python compare_videos.py
 
