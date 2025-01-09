@@ -34,3 +34,7 @@ This guide explains how to set up a Python virtual environment and manage depend
 ## Running video comparison analysis
 1. python compare_videos.py
 
+## Run FAST API server
+1. Run the FastAPI app using a compatible ASGI server like uvicorn
+2. Command to run: `uvicorn main:app --reload`
+

@@ -1,99 +1,138 @@
 import cv2
-from skimage.metrics import structural_similarity as ssim
 import mediapipe as mp
 import numpy as np
-from fastdtw import fastdtw
-from scipy.spatial.distance import euclidean
-
-def compare_frames(video1_path, video2_path):
-    cap1 = cv2.VideoCapture(video1_path)
-    cap2 = cv2.VideoCapture(video2_path)
-
-    similarities = []
-    while cap1.isOpened() and cap2.isOpened():
-        ret1, frame1 = cap1.read()
-        ret2, frame2 = cap2.read()
-
-        if not ret1 or not ret2:
-            break
-
-        # Resize to same dimensions if needed
-        frame2 = cv2.resize(frame2, (frame1.shape[1], frame1.shape[0]))
-
-        # Convert to grayscale for SSIM calculation
-        gray1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
-        gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
-
-        # Calculate SSIM (Structural Similarity Index)
-        score, diff = ssim(gray1, gray2, full=True)
-        similarities.append(score)
-
-    cap1.release()
-    cap2.release()
-    return similarities
-
-# similarities = compare_frames("sample_videos/vid1.MOV", "sample_videos/vid2.MOV")
-# print("Average SSIM Similarity:", np.mean(similarities))
-# "Average SSIM Similarity: 0.6064674307483849"
+from math import sqrt
 
 mp_pose = mp.solutions.pose
 
-def extract_pose_landmarks(video_path):
-    cap = cv2.VideoCapture(video_path)
-    pose = mp_pose.Pose()
-    landmarks_list = []
+# Define key joints and their weights
+JOINTS = [
+    (mp_pose.PoseLandmark.RIGHT_WRIST, "Right Wrist", 20),
+    (mp_pose.PoseLandmark.LEFT_WRIST, "Left Wrist", 20),
+    (mp_pose.PoseLandmark.RIGHT_SHOULDER, "Right Shoulder", 1),
+    (mp_pose.PoseLandmark.LEFT_SHOULDER, "Left Shoulder", 1),
+    (mp_pose.PoseLandmark.RIGHT_ELBOW, "Right Elbow", 8),
+    (mp_pose.PoseLandmark.LEFT_ELBOW, "Left Elbow", 8),
+    (mp_pose.PoseLandmark.RIGHT_HIP, "Right Hip", 4),
+    (mp_pose.PoseLandmark.LEFT_HIP, "Left Hip", 4),
+    (mp_pose.PoseLandmark.RIGHT_KNEE, "Right Knee", 3),
+    (mp_pose.PoseLandmark.LEFT_KNEE, "Left Knee", 3),
+]
 
+def extract_keypoints(video_path, pose):
+    cap = cv2.VideoCapture(video_path)
+    keypoints = []
+    fps = cap.get(cv2.CAP_PROP_FPS)
     while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
+        success, frame = cap.read()
+        if not success:
             break
 
-        # Convert to RGB for MediaPipe processing
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        results = pose.process(rgb_frame)
+        # Process frame for pose estimation
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        results = pose.process(frame_rgb)
 
         if results.pose_landmarks:
-            # Collect pose landmarks for each frame
-            landmarks = [(lm.x, lm.y, lm.z) for lm in results.pose_landmarks.landmark]
-            landmarks_list.append(landmarks)
+            keypoints.append(results.pose_landmarks.landmark)
+        else:
+            keypoints.append(None)  # No keypoints detected for this frame
 
     cap.release()
-    return landmarks_list
+    return keypoints, fps
 
-# Extract landmarks from both videos
-# landmarks1 = extract_pose_landmarks("sample_videos/vid1.MOV")
-# landmarks2 = extract_pose_landmarks("sample_videos/vid2.MOV")
+def calculate_differences(keypoints1, keypoints2, joints):
+    differences = []
+    for kp1, kp2 in zip(keypoints1, keypoints2):
+        if kp1 is None or kp2 is None:
+            differences.append(None)  # Skip frames with missing keypoints
+            continue
 
-# Compare landmarks with a similarity measure
+        # Calculate differences for all joints
+        total_diff = 0
+        total_weight = 0
+        joint_differences = {}
+        for joint_idx, joint_name, weight in joints:
+            diff = sqrt(
+                (kp1[joint_idx].x - kp2[joint_idx].x) ** 2 +
+                (kp1[joint_idx].y - kp2[joint_idx].y) ** 2
+            )
+            total_diff += diff * weight
+            total_weight += weight
+            joint_differences[joint_name] = diff
 
-def calculate_dtw_difference(landmarks1, landmarks2):
-    """
-    Use DTW to calculate the difference between landmarks of two videos.
-    Parameters:
-        landmarks1: List of landmarks per frame for video 1
-        landmarks2: List of landmarks per frame for video 2
-    Returns:
-        dtw_distance: The DTW distance between the two landmark sequences.
-    """
-    # Flatten each frame's landmarks into a 1D array for DTW comparison
-    flattened_landmarks1 = [np.array(frame).flatten() for frame in landmarks1]
-    flattened_landmarks2 = [np.array(frame).flatten() for frame in landmarks2]
+        mean_diff = total_diff / total_weight if total_weight > 0 else 0
+        differences.append((mean_diff, joint_differences))
 
-    # Calculate DTW distance between the two sequences
-    dtw_distance, _ = fastdtw(flattened_landmarks1, flattened_landmarks2, dist=euclidean)
-    return dtw_distance
+    return differences
 
-# dtw_difference = calculate_dtw_difference(landmarks1, landmarks2)
-# print("DTW Motion Difference:", dtw_difference)
-# "DTW Motion Difference: 1045.272274242002"
+def evaluate_video(differences, fps, thresholds):
+    evaluations = {"Excellent": 0, "Good": 0, "Fair": 0, "Poor": 0}
+    mismatches = []
+
+    for i, diff in enumerate(differences):
+        if diff is None:
+            continue  # Skip missing frames
+
+        mean_diff, joint_differences = diff
+        if mean_diff < thresholds["Good"]:
+            eval_type = "Excellent"
+        elif mean_diff < thresholds["Fair"]:
+            eval_type = "Good"
+        elif mean_diff < thresholds["Poor"]:
+            eval_type = "Fair"
+        else:
+            eval_type = "Poor"
+
+        evaluations[eval_type] += 1
+
+        # Only record mismatches (Fair and Poor)
+        if eval_type in ["Fair", "Poor"]:
+            mismatches.append({
+                "timestamp": i / fps,
+                "mean_difference": mean_diff,
+                "joint_differences": joint_differences,
+                "evaluation": eval_type
+            })
+
+    # Overall evaluation based on the majority
+    total_frames = sum(evaluations.values())
+    overall_evaluation = max(evaluations, key=evaluations.get) if total_frames > 0 else "No Data"
+
+    # Determine matching status
+    is_matching = len(mismatches) == 0
+
+    return {
+        "is_matching": is_matching,
+        "overall_evaluation": overall_evaluation,
+        "evaluations": evaluations,
+        "mismatches": sorted(mismatches, key=lambda x: x["mean_difference"], reverse=True)[:15]
+    }
+
+def compare_videos(video1_path, video2_path):
+    pose = mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
+
+    keypoints1, fps1 = extract_keypoints(video1_path, pose)
+    keypoints2, fps2 = extract_keypoints(video2_path, pose)
+
+    differences = calculate_differences(keypoints1, keypoints2, JOINTS)
+
+    thresholds = {
+        "Good": 0.10,
+        "Fair": 0.15,
+        "Poor": 0.25
+    }
+
+    result = evaluate_video(differences, fps2, thresholds)
+
+    pose.close()
+    return result
+
+
+# video1_path = "sample_videos/vid4.mp4"
+# video2_path = "sample_videos/vid6.mp4"
+# print(compare_videos(video1_path, video2_path))
 
 """
-We need to decide on which type of comparison to perform:
-DTW Motion Difference: Dynamic Time Warping (DTW)
-or
-Average SSIM Similarity: Structural Similarity Index Measure (SSIM)
-Need more research to be done
-
 Also, we need to find out how to store videos properly
 Suggestion:
 AWS S3 Buckets

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Comparison</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h1, h2 {
+      color: #333;
+    }
+    .results {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .results table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    .results table, .results th, .results td {
+      border: 1px solid #ddd;
+    }
+    .results th, .results td {
+      padding: 8px;
+      text-align: left;
+    }
+    .results th {
+      background-color: #f4f4f4;
+    }
+    .message {
+      font-size: 18px;
+      color: #555;
+    }
+    .success {
+      color: green;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <h1>Video Comparison App</h1>
+  <form id="uploadForm" enctype="multipart/form-data">
+    <label for="video1">Upload Video 1:</label>
+    <input type="file" id="video1" name="video1" required><br><br>
+    <label for="video2">Upload Video 2:</label>
+    <input type="file" id="video2" name="video2" required><br><br>
+    <button type="submit">Compare Videos</button>
+  </form>
+
+  <div class="results">
+    <h2>Results</h2>
+    <div id="message" class="message"></div>
+    <table id="resultTable" style="display: none;">
+      <thead>
+        <tr>
+          <th>Timestamp (s)</th>
+          <th>Evaluation</th>
+          <th>Mean Difference</th>
+          <th>Joint Differences</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    document.getElementById("uploadForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      // Clear previous results
+      document.getElementById("message").textContent = "";
+      const resultTable = document.getElementById("resultTable");
+      const resultTableBody = resultTable.querySelector("tbody");
+      resultTableBody.innerHTML = ""; // Clear table rows
+      resultTable.style.display = "none";
+
+      const formData = new FormData();
+      formData.append("video1", document.getElementById("video1").files[0]);
+      formData.append("video2", document.getElementById("video2").files[0]);
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/compare", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        // Check if videos match
+        if (data.is_matching) {
+          document.getElementById("message").textContent = "The videos are matching!";
+          document.getElementById("message").classList.add("success");
+          return;
+        }
+
+        // Display overall evaluation
+        document.getElementById("message").textContent =
+          `Overall Evaluation: ${data.overall_evaluation}`;
+        document.getElementById("message").classList.add("success");
+
+        // Populate mismatch results
+        if (data.mismatches.length > 0) {
+          resultTable.style.display = "table";
+          data.mismatches.forEach((mismatch) => {
+            const row = document.createElement("tr");
+
+            // Timestamp
+            const timestampCell = document.createElement("td");
+            timestampCell.textContent = mismatch.timestamp.toFixed(2);
+            row.appendChild(timestampCell);
+
+            // Evaluation
+            const evaluationCell = document.createElement("td");
+            evaluationCell.textContent = mismatch.evaluation;
+            row.appendChild(evaluationCell);
+
+            // Mean Difference
+            const meanDiffCell = document.createElement("td");
+            meanDiffCell.textContent = mismatch.mean_difference.toFixed(4);
+            row.appendChild(meanDiffCell);
+
+            // Joint Differences
+            const jointDiffCell = document.createElement("td");
+            jointDiffCell.innerHTML = Object.entries(mismatch.joint_differences)
+              .map(([joint, diff]) => `${joint}: ${diff.toFixed(4)}`)
+              .join("<br>");
+            row.appendChild(jointDiffCell);
+
+            resultTableBody.appendChild(row);
+          });
+        } else {
+          document.getElementById("message").textContent += "\nNo significant mismatches found.";
+        }
+      } catch (error) {
+        document.getElementById("message").textContent = error.message;
+        document.getElementById("message").classList.add("error");
+      }
+    });
+  </script>
+</body>
+</html>
