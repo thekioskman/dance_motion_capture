@@ -1,0 +1,30 @@
+services:
+  db:
+    build:
+      context: ./postgres
+    environment:
+      POSTGRES_HOST: localhost
+      POSTGRES_DB: dance_motion_db
+      POSTGRES_USER: brian
+      POSTGRES_PASSWORD: password
+      PG_DATA: /var/lib/postgresql/data
+    volumes:
+      - psql_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+  api:
+    container_name: api
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_DB: dance_motion_db
+      POSTGRES_USER: brian
+      POSTGRES_PASSWORD: password
+    ports:
+      - 8000:8000
+    volumes:
+      - ./api:/dance_motion_capture
+volumes:
+  psql_data:
