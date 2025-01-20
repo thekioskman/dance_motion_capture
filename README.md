@@ -73,6 +73,17 @@ docker exec -it <container_name>
 psql -U brian -d dance_motion_db
 ```
 
+## A note on adding packages
+Whatever is in the requirements.txt will be installed into the container. If you want to add a package, just exec into the container, and use pip to install it. (This will ensure the package will play well with everything else we have installed) You can then pip freeze and copy that into the requirements.txt
+```
+---on your machine---
+docker exec -it <container_name>
+
+---inside the docker container---
+pip install <package_name>
+pip freeze
+```
+
 ## Editing the code
 You can either work locally or use the docker container as a developement enviorment. But make sure the code still works after you docker compose up. You can test the endpoint using Postman or your browser. At localhost:8000, because the docker container just binds to a host port. (in this case set to 8000)
 
