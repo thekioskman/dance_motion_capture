@@ -67,12 +67,9 @@ def login(request_body: userLoginData):
             user_exists = cursor.fetchone()[0] > 0
             
             if not user_exists:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Wrong username or password"
-                )
+                return {"success" : False, "message" : "incorrect username or password"}
            
-    return {"message": "Login Successfull"}
+    return {"success": True}
 
 
 @app.post("/register")
@@ -100,5 +97,5 @@ def register(request_body: userLoginData):
                 )
                 conn.commit()
 
-    return {"message": "User registered successfully."}
+    return {"message": "User registered successfully.", "success" : True}
 
