@@ -21,22 +21,6 @@ CREATE TABLE public.user_posts(
     "picture_url" VARCHAR(500)
 );
 
-CREATE TABLE public.club_posts(
-    "id" SERIAL PRIMARY KEY,
-    "owner" INTEGER REFERENCES users (id),
-    "description" VARCHAR(500),
-    "video_url" VARCHAR(500),
-    "picture_url" VARCHAR(500),
-    "event_id" INTEGER REFERENCES events (id)
-);
-
-CREATE TABLE public.post_comments(
-    "id" SERIAL PRIMARY KEY,
-    "owner" INTEGER REFERENCES users (id),
-    "comment" VARCHAR(500),
-    "post_id" INTEGER REFERENCES posts (id)
-);
-
 CREATE TABLE public.clubs(
     "id" SERIAL PRIMARY KEY,
     "owner" VARCHAR(50) NOT NULL,
@@ -55,6 +39,26 @@ CREATE TABLE public.events(
     "location" VARCHAR(50) NOT NULL,
     "picture_url" VARCHAR(500)
 );
+
+CREATE TABLE public.club_posts(
+    "id" SERIAL PRIMARY KEY,
+    "owner" INTEGER REFERENCES users (id),
+    "description" VARCHAR(500),
+    "video_url" VARCHAR(500),
+    "picture_url" VARCHAR(500),
+    "event_id" INTEGER REFERENCES events (id)
+);
+
+CREATE TABLE public.post_comments(
+    "id" SERIAL PRIMARY KEY,
+    "owner" INTEGER REFERENCES users (id),
+    "comment" VARCHAR(500),
+    "post_id" INTEGER REFERENCES club_posts (id)
+);
+
+
+
+
 
 CREATE TABLE public.event_interest(
     "user_id" INTEGER REFERENCES users (id),
