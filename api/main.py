@@ -65,6 +65,11 @@ async def compare_endpoint(video1: UploadFile = File(...), video2: UploadFile = 
 
     return JSONResponse(content=result)
 
+@app.get("/posts/{user_id}")
+def get_posts():
+    pass
+
+
 # User Login
 @app.post("/login")
 def login(request_body: userLoginData):
