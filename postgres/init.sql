@@ -24,7 +24,8 @@ CREATE TABLE public.user_posts(
     "owner" INTEGER REFERENCES users (id) ON DELETE CASCADE,
     "description" VARCHAR(500),
     "video_url" VARCHAR(500),
-    "picture_url" VARCHAR(500)
+    "picture_url" VARCHAR(500),
+    "created_on" TIMESTAMP WITH TIME ZONE
 );
 
 -- Table keeping track of all the clubs that exist
@@ -46,7 +47,8 @@ CREATE TABLE public.events(
     "time" time with time zone,
     "duration_minutes" INTEGER,
     "location" VARCHAR(50) NOT NULL,
-    "picture_url" VARCHAR(500)
+    "picture_url" VARCHAR(500),
+    "created_on" TIMESTAMP WITH TIME ZONE
 );
 
 -- Table keeping track of all posts made by clubs
@@ -56,7 +58,8 @@ CREATE TABLE public.club_posts(
     "description" VARCHAR(500),
     "video_url" VARCHAR(500),
     "picture_url" VARCHAR(500),
-    "event_id" INTEGER REFERENCES events (id)
+    "event_id" INTEGER REFERENCES events (id),
+    "created_on" TIMESTAMP WITH TIME ZONE
 );
 
 -- Table keeping track of the comments on CLUB POSTS
@@ -64,7 +67,8 @@ CREATE TABLE public.club_post_comments(
     "id" SERIAL PRIMARY KEY,
     "owner" INTEGER REFERENCES users (id),
     "comment" VARCHAR(500),
-    "post_id" INTEGER REFERENCES club_posts (id) ON DELETE CASCADE
+    "post_id" INTEGER REFERENCES club_posts (id) ON DELETE CASCADE,
+    "created_on" TIMESTAMP WITH TIME ZONE
 );
 
 
