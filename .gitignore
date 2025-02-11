@@ -2,3 +2,4 @@
 uploads
 *.zip
 dependencies
+**/__pycache__/
