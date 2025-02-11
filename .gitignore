@@ -1,5 +1,16 @@
-/venv
-uploads
+# Ignore Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore virtual environment
+venv/
+.env/
+
+# Ignore uploads and zip files
+uploads/
 *.zip
-dependencies
-**/__pycache__/
+
+# Ignore dependencies (if this refers to a specific directory)
+dependencies/
