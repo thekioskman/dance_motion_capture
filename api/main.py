@@ -43,8 +43,8 @@ async def compare_endpoint(video1: UploadFile = File(...), video2: UploadFile = 
     Endpoint to compare two uploaded videos.
     """
     # Save uploaded files
-    video1_path = os.path.join("uploads", video1.filename)
-    video2_path = os.path.join("uploads", video2.filename)
+    video1_path = os.path.join(UPLOAD_FOLDER, video1.filename)
+    video2_path = os.path.join(UPLOAD_FOLDER, video2.filename)
 
     try:
         with open(video1_path, "wb") as f:
