@@ -26,18 +26,28 @@ def fetch_posts(user_id : int, timestamp : str):
                     WHERE owner IN (
                         SELECT following_id FROM {USER_FOLLOWINGS_TABLE} WHERE user_id = %s
                     ) 
-                    AND time > %s
+                    AND created_on > %s 
+                    ORDER BY created_at ASC;
                     """,
                     (user_id, timestamp)
             )
             user_posts = cursor.fetchall()
+            user_col_names = [desc[0] for desc in cursor.description]
 
 
 
             cursor.execute(
                 f"SELECT * FROM {USER_POSTS_TABLE} WHERE owner IN "
-                f"(SELECT following_id FROM {USER_FOLLOWINGS_TABLE} WHERE user_id = %s)",
-                (user_id,)
+                f"(SELECT following_id FROM {USER_FOLLOWINGS_TABLE} WHERE user_id = %s) AND created_on > %s ORDER BY created_at ASC;",
+                (user_id, timestamp)
             )
-            user_posts = cursor.fetchall()
+            club_posts = cursor.fetchall()
+            club_col_names = [desc[0] for desc in cursor.description]
+
+
+            return user_posts, club_posts, user_col_names, club_col_names
+
+
+
+
 
