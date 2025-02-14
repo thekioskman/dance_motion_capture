@@ -31,3 +31,7 @@ class User(BaseModel):
     total_dance_time: int 
     sessions_attended: int 
     followers: int
+
+class postsReqest(BaseModel):
+    user_id: int
+    timestamp: str
