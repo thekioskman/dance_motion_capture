@@ -87,3 +87,27 @@ pip freeze
 ## Editing the code
 You can either work locally or use the docker container as a developement enviorment. But make sure the code still works after you docker compose up. You can test the endpoint using Postman or your browser. At localhost:8000, because the docker container just binds to a host port. (in this case set to 8000)
 
+# Publish image to Docker Hub
+First build image
+Then Tag image
+Then push image to Docker Registry (Docker Hub)
+1. For db:
+   docker-compose build db
+   docker tag postgres_db tk2k2/cs494-db:latest
+   docker push tk2k2/cs494-db:latest
+
+2. For api:
+   docker-compose build api
+   docker tag dance_motion_capture-api:latest  tk2k2/cs494-api:latest
+   docker push tk2k2/cs494-api:latest
+
+3. Run on ec2 instance:
+   docker stop cs494-api
+   docker rm cs494-api
+   docker pull tk2k2/cs494-api:latest
+   docker run -d --network host --name cs494-api tk2k2/cs494-api:latest
+
+https://aws.plainenglish.io/deploy-docker-image-to-aws-ec2-in-5-minutes-4cd7518feacc
+
+
+

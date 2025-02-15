@@ -23,7 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-UPLOAD_FOLDER = "uploads"
+UPLOAD_FOLDER = "/tmp"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @app.delete("/reset")
@@ -44,8 +44,8 @@ async def compare_endpoint(video1: UploadFile = File(...), video2: UploadFile = 
     Endpoint to compare two uploaded videos.
     """
     # Save uploaded files
-    video1_path = os.path.join("uploads", video1.filename)
-    video2_path = os.path.join("uploads", video2.filename)
+    video1_path = os.path.join(UPLOAD_FOLDER, video1.filename)
+    video2_path = os.path.join(UPLOAD_FOLDER, video2.filename)
 
     try:
         with open(video1_path, "wb") as f:
@@ -56,7 +56,11 @@ async def compare_endpoint(video1: UploadFile = File(...), video2: UploadFile = 
         # Call the function to compare videos
         result = compare_uploaded_videos(video1_path, video2_path)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing videos: {str(e)}")
+        error_message = str(e)
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": error_message}
+        )
     finally:
         # Clean up uploaded files
         if os.path.exists(video1_path):
@@ -298,3 +302,13 @@ def get_club_details(club_id: int):
 # def delete_event_interest(username: str, event_id: int):
 #     return crud.delete_event_interest(username, event_id)
 
+@app.get("/")
+def hello_world():
+    """
+    Returns a simple Hello World message
+    """
+    return {"message": "Hello, World!"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
