@@ -6,7 +6,7 @@ from db_connect import connect
 from crud import *
 from models import *
 import os
-from posts import fetch_posts
+from posts_event_crud import *
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -66,27 +66,37 @@ async def compare_endpoint(video1: UploadFile = File(...), video2: UploadFile = 
 
     return JSONResponse(content=result)
 
+#Fetch POsts
 @app.post("/posts")
 #clubs fetch
 def get_posts(request_body: postsReqest):
-    id = request_body.user_id
-    time = request_body.timestamp
-
     try:
-        user_posts_raw , club_posts_raw, user_col_name , club_col_names = fetch_posts(id, time)
-
-        #compare the timestamps of the last entries so the last one in the list we pass to the frontend is the last timestamp
-        #doto convert to dict and JSON
-        user_posts = [dict(zip(user_col_name, row)) for row in user_posts_raw]
-        club_posts = [dict(zip(club_col_names, row)) for row in club_posts_raw]
-
-        if user_posts[-1]["created_on"] > club_posts[-1]["created_on"]:
-            return club_posts + user_posts
-        else:
-            return user_posts + club_posts
-    
+        response = fetch_posts(request_body)
+        return response
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+#create posts
+@app.post("/clubpost/create")
+def create_club_post(request_body: ClubPost):
+    try:
+        create_club_post_db(request_body)
+        return {"success": True}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/userpost/create")
+def create_user_post(request_body: UserPost):
+    try:
+        create_user_post_db(request_body)
+        return {"success": True}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/clubevent/create")
+def create_club_event(request_body: ClubEvent):
+    pass
 
 
 

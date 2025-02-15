@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Optional
 
 # Request body model
 class userRegisterData(BaseModel):
@@ -35,3 +36,31 @@ class User(BaseModel):
 class postsReqest(BaseModel):
     user_id: int
     timestamp: str
+
+class ClubPost(BaseModel):
+    club_id: int
+    title : str
+    description : Optional[str] = None
+    video_url: Optional[str] = None
+    picture_url: Optional[str] = None
+    event_id : int
+    created_on : str
+
+class UserPost(BaseModel):
+    owner : int
+    title : str
+    description : Optional[str] = None
+    video_url : Optional[str] = None
+    picture_url : Optional[str] = None
+    created_on : str
+
+class ClubEvent(BaseModel):
+    club : int
+    title : str
+    name : str    
+    date : str
+    time : str
+    duration_minutes :  int
+    location : str
+    picture_url : Optional[str] = None
+    created_on : str
