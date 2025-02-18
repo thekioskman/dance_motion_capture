@@ -289,29 +289,4 @@ def delete_club_by_id(club_id: int):
 #             members = cursor.fetchall()
 #             return [member[0] for member in members]
 
-# # **Event Operations**
-# # Function to add a new event
-# def create_new_event(club_id: int, event: newEvent):
-#     with connect() as conn:
-#         with conn.cursor() as cursor:
-#             cursor.execute(f"""
-#                 INSERT INTO {EVENTS_TABLE} (club_id, event_name, description, date)
-#                 VALUES (%s, %s, %s, %s)
-#             """, (club_id, event.event_name, event.description, event.date))
-#             conn.commit()
 
-# # Function to get all events of a club
-# def get_events_by_club(club_id: int):
-#     with connect() as conn:
-#         with conn.cursor() as cursor:
-#             cursor.execute(f"SELECT * FROM {EVENTS_TABLE} WHERE club_id = %s", (club_id,))
-#             events = cursor.fetchall()
-#             return [{"event_id": event[0], "event_name": event[1], "description": event[2], "date": event[3]} for event in events]
-
-
-# # **Event Interest Operations**
-# # Function to add interest in an event
-# def add_interest_in_event(event_id: int, user_id: int):
-#     with connect() as conn:
-#         with conn.cursor() as cursor:
-#             cursor.execute(f"INSERT INTO {EVENTS_INTEREST_TABLE} (event_id, user_id) VALUES (%s, %s)", (event_id, user_id))

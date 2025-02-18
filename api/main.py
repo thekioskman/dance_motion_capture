@@ -6,6 +6,7 @@ from db_connect import connect
 from crud import *
 from models import *
 import os
+from posts_event_crud import *
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -69,9 +70,38 @@ async def compare_endpoint(video1: UploadFile = File(...), video2: UploadFile = 
 
     return JSONResponse(content=result)
 
-@app.get("/posts/{user_id}")
-def get_posts():
+#Fetch POsts
+@app.post("/posts")
+#clubs fetch
+def get_posts(request_body: postsReqest):
+    try:
+        response = fetch_posts(request_body)
+        return response
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+#create posts
+@app.post("/clubpost/create")
+def create_club_post(request_body: ClubPost):
+    try:
+        create_club_post_db(request_body)
+        return {"success": True}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/userpost/create")
+def create_user_post(request_body: UserPost):
+    try:
+        create_user_post_db(request_body)
+        return {"success": True}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/clubevent/create")
+def create_club_event(request_body: ClubEvent):
     pass
+
 
 
 # User Login
