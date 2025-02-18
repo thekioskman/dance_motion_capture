@@ -255,12 +255,12 @@ def get_club_by_id(club_id: int):
             else:
                 raise Exception("Club not found.")
 
-# # Function to delete club by ID
-# def delete_club_by_id(club_id: int):
-#     with connect() as conn:
-#         with conn.cursor() as cursor:
-#             cursor.execute(f"DELETE FROM {CLUBS_TABLE} WHERE id = %s", (club_id,))
-#             conn.commit()
+# Function to delete club by ID
+def delete_club_by_id(club_id: int):
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(f"DELETE FROM {CLUBS_TABLE} WHERE id = %s", (club_id,))
+            conn.commit()
 
 # # Function to add a member to a club
 # def add_member_to_club(club_id: int, user_id: int):

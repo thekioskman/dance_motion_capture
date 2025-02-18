@@ -171,14 +171,14 @@ def get_club_details(club_id: int):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error fetching club details: {str(e)}")
 
-# # Delete a club
-# @app.delete("/club/delete/{club_id}")
-# def delete_club(club_id: int):
-#     try:
-#         delete_club_by_id(club_id)
-#         return {"message": f"Club with ID {club_id} deleted successfully."}
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=f"Error deleting club: {str(e)}")
+# Delete a club
+@app.delete("/club/{club_id}")
+def delete_club(club_id: int):
+    try:
+        delete_club_by_id(club_id)
+        return {"message": f"Club with ID {club_id} deleted successfully."}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error deleting club: {str(e)}")
 
 # # Add a member to a club
 # @app.post("/club/{club_id}/add_member")

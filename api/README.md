@@ -201,7 +201,38 @@ API code is split in the following manner:
     - **200 OK**:
     ```json
     {
-        "message": "johndoe successfully unfollowed brian"
+        "message": "New Club 'UW Hip Hop' was created successfully",
+        "club_id": 2
+    }
+    ```
+    - **400 Bad Request**: Invalid input.
+
+### **Get Club Details**
+- **URL**: `/club/{club_id}`
+- **Method**: `GET`
+- **Description**: Get details of a club by club id (returned when a new club is created)
+- **Response**:
+    - **200 OK**:
+    ```json
+    {
+        "id": 2,
+        "owner": 1,
+        "name": "UW Hip Hop",
+        "description": "Hip hop dancing woo",
+        "club_tag": "UWHH"
+    }
+    ```
+    - **400 Bad Request**: Invalid input.
+
+### **Delete Club**
+- **URL**: `/club/{club_id}`
+- **Method**: `DELETE`
+- **Description**: Delete a club based on club id
+- **Response**:
+    - **200 OK**:
+    ```json
+    {
+        "message": "Club with ID 2 deleted successfully."
     }
     ```
     - **400 Bad Request**: Invalid input.
