@@ -1,6 +1,6 @@
 import os
 from db_connect import connect
-from models import ClubEvent, ClubPost, UserPost, postsReqest
+from models import ClubEvent, ClubPost, UserPost, postsReqest, EventInterest
 from datetime import datetime
 
 UPLOAD_FOLDER = "uploads"
@@ -97,30 +97,56 @@ def create_club_post_db(request_body : ClubPost):
 
 # # **Event Operations**
 # # Function to add a new event
-# def create_club_event_db(request_body : ClubEvent):
-#     with connect() as conn:
-#         with conn.cursor() as cursor:
-#             cursor.execute(f"""
-#                 INSERT INTO {EVENTS_TABLE} (club_id, event_name, description, date)
-#                 VALUES (%s, %s, %s, %s)
-#             """, (club_id, event.event_name, event.description, event.date))
-#             conn.commit()
+def create_club_event_db(request_body : ClubEvent):
+    club_id = request_body.club
+    title = request_body.title
+    name = request_body.name
+    date = request_body.date
+    time = request_body.time
+    duration_minutes = request_body.duration_minutes
+    location = request_body.location
+    picture_url = request_body.picture_url
+    created_on  = request_body.created_on
+    timestamp_obj = datetime.fromisoformat(created_on.replace("Z", "+00:00"))
 
-   
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(f"""
+                INSERT INTO {EVENTS_TABLE} (title, club, name, description, date, time, duration_minutes, location, picture_url, created_on)
+                VALUES (%s, %s, %s, %s,%s, %s, %s, %s, %s, %s)
+            """, (title, club_id, name, date, time, duration_minutes, location, picture_url, timestamp_obj ))
+            conn.commit()
 
-# Function to get all events of a club
-# def get_events_by_club(club_id: int):
-#     with connect() as conn:
-#         with conn.cursor() as cursor:
-#             cursor.execute(f"SELECT * FROM {EVENTS_TABLE} WHERE club_id = %s", (club_id,))
-#             events = cursor.fetchall()
-#             return [{"event_id": event[0], "event_name": event[1], "description": event[2], "date": event[3]} for event in events]
 
+# Function to get all club events for a given user
+def get_events_by_club(request_body: postsReqest):
+
+    user_id = request_body.user_id
+    timestamp = request_body.timestamp
+    timestamp_obj = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+
+    with connect() as conn:
+        with conn.cursor() as cursor:
+
+            cursor.execute(
+                f"SELECT * FROM {EVENTS_TABLE} WHERE club IN "
+                f"(SELECT club_id FROM {MEMBERSHIPS_TABLE} WHERE user_id = %s) AND created_on >= %s ORDER BY created_on ASC;",
+                (user_id, timestamp_obj)
+            )
+            club_events = cursor.fetchall()
+            club_col_names = [desc[0] for desc in cursor.description]
+            club_events = [dict(zip(club_col_names, row)) for row in club_events]
+
+            return club_events
 
 # **Event Interest Operations**
 # Function to add interest in an event
-# def add_interest_in_event(event_id: int, user_id: int):
-#     with connect() as conn:
-#         with conn.cursor() as cursor:
-#             cursor.execute(f"INSERT INTO {EVENTS_INTEREST_TABLE} (event_id, user_id) VALUES (%s, %s)", (event_id, user_id))
+def add_interest_in_event(request_body : EventInterest):
+
+    event_id = request_body.event_id
+    user_id = request_body.user_id
+
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(f"INSERT INTO {EVENTS_INTEREST_TABLE} (event_id, user_id) VALUES (%s, %s)", (event_id, user_id))
 

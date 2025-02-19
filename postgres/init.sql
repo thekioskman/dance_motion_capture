@@ -45,6 +45,7 @@ CREATE TABLE public.events(
     "title" VARCHAR(500),
     "club" INTEGER REFERENCES clubs (id) ON DELETE CASCADE,
     "name" VARCHAR(50) UNIQUE NOT NULL,
+    "description" VARCHAR(500),
     "date" date NOT NULL,
     "time" time with time zone,
     "duration_minutes" INTEGER,

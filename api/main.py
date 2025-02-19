@@ -79,8 +79,7 @@ def get_posts(request_body: postsReqest):
         return response
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-
+    
 #create posts
 @app.post("/clubpost/create")
 def create_club_post(request_body: ClubPost):
@@ -100,9 +99,11 @@ def create_user_post(request_body: UserPost):
 
 @app.post("/clubevent/create")
 def create_club_event(request_body: ClubEvent):
-    pass
-
-
+    try:
+        create_club_event_db(request_body)
+        return {"success": True}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 # User Login
 @app.post("/login")
@@ -110,10 +111,8 @@ def login(request_body: userLoginData):
     '''
     Authenticate user login
     '''
-    username = request_body.username
-    password = request_body.password
     try:
-        result = authenticate_user(username, password)
+        result = authenticate_user(request_body)
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -124,13 +123,8 @@ def register(request_body: userRegisterData):
     '''
     Register a new user in the system
     '''
-    username = request_body.username
-    password = request_body.password
-    first_name = request_body.first_name
-    last_name = request_body.last_name
-    
     try:
-        register_user(username, password, first_name, last_name)
+        register_user(request_body)
         return {"message": "User registered successfully.", "success": True}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
