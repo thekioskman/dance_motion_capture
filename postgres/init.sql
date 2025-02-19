@@ -88,3 +88,9 @@ CREATE TABLE public.membership(
     "user_id" INTEGER REFERENCES users (id),
     "club_id" INTEGER REFERENCES clubs (id)
 );
+
+-- Track the last timestamp of posts the user viewed 
+CREATE TABLE public.post_latest_timestamp(
+    "user_id" INTEGER PRIMARY KEY REFERENCES users (id)
+    "time" TIMESTAMP WITH TIME ZONE NOT NULL
+)
