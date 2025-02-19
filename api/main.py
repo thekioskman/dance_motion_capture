@@ -70,6 +70,7 @@ async def compare_endpoint(video1: UploadFile = File(...), video2: UploadFile = 
 
     return JSONResponse(content=result)
 
+
 #Fetch POsts
 @app.post("/posts")
 #clubs fetch
