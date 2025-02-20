@@ -262,19 +262,40 @@ def delete_club_by_id(club_id: int):
             cursor.execute(f"DELETE FROM {CLUBS_TABLE} WHERE id = %s", (club_id,))
             conn.commit()
 
-# # Function to add a member to a club
-# def add_member_to_club(club_id: int, user_id: int):
-#     with connect() as conn:
-#         with conn.cursor() as cursor:
-#             cursor.execute(f"INSERT INTO {MEMBERSHIPS_TABLE} (club_id, user_id) VALUES (%s, %s)", (club_id, user_id))
-#             conn.commit()
+# Function to add a member to a club
+def add_member_to_club(club_id: int, user_id: int):
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
+                INSERT INTO {MEMBERSHIPS_TABLE} (user_id, club_id)
+                VALUES (%s, %s)
+                ON CONFLICT (user_id, club_id) DO NOTHING
+                """,
+                (club_id, user_id)
+            )
+            conn.commit()
 
-# # Function to remove a member from a club
-# def remove_member_from_club(club_id: int, user_id: int):
-#     with connect() as conn:
-#         with conn.cursor() as cursor:
-#             cursor.execute(f"DELETE FROM {MEMBERSHIPS_TABLE} WHERE club_id = %s AND user_id = %s", (club_id, user_id))
-#             conn.commit()
+# Function to remove a member from a club
+def remove_member_from_club(club_id: int, user_id: int):
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(f"DELETE FROM {MEMBERSHIPS_TABLE} WHERE club_id = %s AND user_id = %s", (club_id, user_id))
+            conn.commit()
+
+# Function to get all clubs that a user is a member of
+def get_user_clubs_by_id(user_id: int):
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            # Check if user exists
+            cursor.execute(f"SELECT id FROM {USERS_TABLE} WHERE id = %s", (user_id,))
+            if cursor.fetchone() is None:
+                raise ValueError("User does not exist")
+            
+            cursor.execute(f"SELECT club_id FROM {MEMBERSHIPS_TABLE} WHERE user_id = %s",(user_id,))
+            clubs = cursor.fetchall()
+            
+            return [id[0] for id in clubs]
 
 # # Function to get all members of a club
 # def get_club_members_by_id(club_id: int):

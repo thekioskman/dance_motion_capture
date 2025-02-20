@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Body
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -210,32 +210,34 @@ def delete_club(club_id: int):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error deleting club: {str(e)}")
 
-# # Add a member to a club
-# @app.post("/club/{club_id}/add_member")
-# def add_club_member(club_id: int, user_id: int):
-#     try:
-#         add_member_to_club(club_id, user_id)
-#         return {"message": f"User with ID {user_id} added to club with ID {club_id}."}
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=f"Error adding member to club: {str(e)}")
+# Add a member to a club
+@app.post("/club/{club_id}/members")
+def add_club_member(club_id: int, user_id: int = Body(..., embed=True)):
+    try:
+        add_member_to_club(club_id, user_id)
+        return {"message": f"User with ID {user_id} added to club with ID {club_id}."}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error adding member to club: {str(e)}")
 
-# # Remove a member from a club
-# @app.delete("/club/{club_id}/remove_member")
-# def remove_club_member(club_id: int, user_id: int):
-#     try:
-#         remove_member_from_club(club_id, user_id)
-#         return {"message": f"User with ID {user_id} removed from club with ID {club_id}."}
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=f"Error removing member from club: {str(e)}")
+# Remove a member from a club
+@app.delete("/club/{club_id}/members/{user_id}")
+def remove_club_member(club_id: int, user_id: int):
+    try:
+        remove_member_from_club(club_id, user_id)
+        return {"message": f"User with ID {user_id} removed from club with ID {club_id}."}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error removing member from club: {str(e)}")
 
-# # Get all clubs that a user is in
-# @app.get("/clubs/{username}")
-# def get_user_clubs(username: str):
-#     try:
-#         clubs = get_user_clubs(username)
-#         return {"clubs": clubs}
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=f"Error fetching user clubs: {str(e)}")
+# Get all clubs that a user is in
+@app.get("/user/{user_id}/clubs")
+def get_user_clubs(user_id: int):
+    try:
+        clubs = get_user_clubs_by_id(user_id)
+        print("YOOO")
+        print(clubs)
+        return {"clubs": clubs}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error fetching user clubs: {str(e)}")
 
 # # Get all members of a club
 # @app.get("/club/{club_id}/members")

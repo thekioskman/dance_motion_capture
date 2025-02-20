@@ -85,5 +85,6 @@ CREATE TABLE public.event_interest(
 CREATE TABLE public.membership(
     "id" SERIAL PRIMARY KEY,
     "user_id" INTEGER REFERENCES users (id),
-    "club_id" INTEGER REFERENCES clubs (id)
+    "club_id" INTEGER REFERENCES clubs (id),
+    UNIQUE (user_id, club_id)
 );

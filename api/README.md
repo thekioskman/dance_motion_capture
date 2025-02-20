@@ -237,6 +237,53 @@ API code is split in the following manner:
     ```
     - **400 Bad Request**: Invalid input.
 
+### **Add Member to Club**
+- **URL**: `/club/{club_id}/members`
+- **Method**: `POST`
+- **Description**: Add a new club
+- **Request Body**:
+    ```json
+    {
+        "user_id": 1,
+    }
+    ```
+- **Response**:
+    - **200 OK**:
+    ```json
+    {
+        "message": "User with ID 1 added to club with ID 1."
+    }
+    ```
+    - **400 Bad Request**: Invalid input.
+
+### **Delete Member from a Club**
+- **URL**: `/club/{club_id}/members/{user_id}`
+- **Method**: `DELETE`
+- **Description**: Remove a member from a club
+- **Response**:
+    - **200 OK**:
+    ```json
+    {
+        "message": "User with ID 1 removed from club with ID 1."
+    }
+    ```
+    - **400 Bad Request**: Invalid input.
+
+### **Get User Clubs**
+- **URL**: `/club/{club_id}/members/{user_id}`
+- **Method**: `GET`
+- **Description**: Get all club_ids for clubs that a user is in
+- **Response**:
+    - **200 OK**:
+    ```json
+    {
+        "clubs": [
+            1
+        ]
+    }
+    ```
+    - **400 Bad Request**: Invalid input.
+
 ## Error Codes
 Here is a list of possible error codes and their meanings:
 
