@@ -64,3 +64,7 @@ class ClubEvent(BaseModel):
     location : str
     picture_url : Optional[str] = None
     created_on : str
+
+class EventInterest(BaseModel):
+    user_id : int
+    event_id : int

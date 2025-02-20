@@ -1,9 +1,10 @@
 import os
 from db_connect import connect
 from compare_videos import compare_videos
-from models import User
+from models import User, userLoginData, userRegisterData
 import bcrypt
 import jwt
+
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -39,7 +40,13 @@ def clear_all_tables():
 # **User Operations**
 
 # Function to register a new user
-def register_user(username: str, password: str, first_name: str, last_name: str):
+def register_user(request_body: userRegisterData):
+
+    username = request_body.username
+    password = request_body.password
+    first_name = request_body.first_name
+    last_name = request_body.last_name
+
     with connect() as conn:
         with conn.cursor() as cursor:
             # Check if user already exists
@@ -60,20 +67,24 @@ def register_user(username: str, password: str, first_name: str, last_name: str)
             conn.commit()
 
 # Function to authenticate a user during login
-def authenticate_user(username: str, password: str):
+def authenticate_user(request_body: userLoginData):
+    
+    username = request_body.username
+    password = request_body.password
+    
     with connect() as conn:
         with conn.cursor() as cursor:
-            cursor.execute(f"SELECT id, password FROM {USERS_TABLE} WHERE username = %s", (username,))
+            cursor.execute(f"SELECT id, password, first_name, last_name FROM {USERS_TABLE} WHERE username = %s", (username,))
             user_data = cursor.fetchone()
 
             if not user_data:
                 raise ValueError("Incorrect username or password.")
             
-            user_id, db_password = user_data
+            user_id, db_password, first_name, last_name = user_data
             
             # Compare the hashed password with the one stored in the database
             if bcrypt.checkpw(password.encode('utf-8'), bytes(db_password)):
-                return {"success": True, "user_id": user_id}
+                return {"success": True, "user_id": user_id, "first_name" : first_name, "last_name" : last_name}
             else:
                 raise ValueError("Incorrect username or password.")
             
