@@ -306,19 +306,14 @@ def get_user_clubs_by_id(user_id: int):
             cursor.execute(f"SELECT club_id FROM {MEMBERSHIPS_TABLE} WHERE user_id = %s",(user_id,))
             clubs = cursor.fetchall()
             
-            return [id[0] for id in clubs]
+            return [club_id[0] for club_id in clubs]
 
-# # Function to get all members of a club
-# def get_club_members_by_id(club_id: int):
-#     with connect() as conn:
-#         with conn.cursor() as cursor:
-#             cursor.execute(f"""
-#                 SELECT u.username
-#                 FROM users u
-#                 JOIN {MEMBERSHIPS_TABLE} m ON m.user_id = u.id
-#                 WHERE m.club_id = %s
-#             """, (club_id,))
-#             members = cursor.fetchall()
-#             return [member[0] for member in members]
+# Function to get all members of a club
+def get_club_members_by_id(club_id: int):
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(f"SELECT user_id FROM {MEMBERSHIPS_TABLE} WHERE club_id = %s", (club_id,))
+            members = cursor.fetchall()
+            return [member[0] for member in members]
 
-
+        
