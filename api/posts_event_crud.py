@@ -275,7 +275,8 @@ def get_interested_events_by_user_id(user_id: int):
             SELECT e.*
             FROM {EVENTS_TABLE} AS e
             JOIN {EVENTS_INTEREST_TABLE} AS ei ON e.id = ei.event_id
-            WHERE ei.user_id = %s;
+            WHERE ei.user_id = %s
+            ORDER BY e.date ASC, e.time ASC;  -- Sort by date first, then by time
             """, (user_id,))
 
             rows = cursor.fetchall()
@@ -287,7 +288,7 @@ def get_interested_events_by_user_id(user_id: int):
     return events
             
 # Function to get all users interested in an event
-def get_interested_events_by_user_id(event_id: int):
+def get_interested_users_by_event_id(event_id: int):
     with connect() as conn:
         with conn.cursor() as cursor:
             # Check if user exists

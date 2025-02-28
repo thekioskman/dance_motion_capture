@@ -316,7 +316,7 @@ def get_user_interested_events(user_id: int):
 @app.get("/events/{event_id}/interested")
 def get_user_interested_events(event_id: int):
     try:
-        users = get_interested_events_by_user_id(event_id)
+        users = get_interested_users_by_event_id(event_id)
         return {"users": users}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error fetching users interested in event: {str(e)}") 
