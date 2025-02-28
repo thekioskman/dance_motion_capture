@@ -219,7 +219,12 @@ def add_interest_in_event(request_body : EventInterest):
 
     with connect() as conn:
         with conn.cursor() as cursor:
+            # Insert event interest
             cursor.execute(f"INSERT INTO {EVENTS_INTEREST_TABLE} (event_id, user_id) VALUES (%s, %s)", (event_id, user_id))
+        
+            # Increment sessions_attended for the user
+            if cursor.rowcount > 0:
+                cursor.execute(f"UPDATE {USERS_TABLE} SET sessions_attended = sessions_attended + 1 WHERE id = %s", (user_id,))
         conn.commit()
 
 # Function to remove interest in an event
@@ -230,7 +235,12 @@ def remove_interest_in_event(request_body : EventInterest):
 
     with connect() as conn:
         with conn.cursor() as cursor:
+            # Remove event interest
             cursor.execute(f"DELETE FROM {EVENTS_INTEREST_TABLE} WHERE event_id = %s AND user_id = %s", (event_id, user_id))
+        
+            # Decrement sessions_attended for the user
+            if cursor.rowcount > 0:
+                cursor.execute(f"UPDATE {USERS_TABLE} SET sessions_attended = sessions_attended - 1 WHERE id = %s", (user_id,))
         conn.commit()
 
 # Function to get all events that a user was interested in 
