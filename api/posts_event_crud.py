@@ -221,10 +221,20 @@ def add_interest_in_event(request_body : EventInterest):
         with conn.cursor() as cursor:
             # Insert event interest
             cursor.execute(f"INSERT INTO {EVENTS_INTEREST_TABLE} (event_id, user_id) VALUES (%s, %s)", (event_id, user_id))
-        
+
             # Increment sessions_attended for the user
             if cursor.rowcount > 0:
-                cursor.execute(f"UPDATE {USERS_TABLE} SET sessions_attended = sessions_attended + 1 WHERE id = %s", (user_id,))
+                # Get event duration
+                cursor.execute(f"SELECT duration_minutes FROM {EVENTS_TABLE} WHERE id = %s", (event_id,))
+                event_duration = cursor.fetchone()[0] # Fetch duration or default to 0
+                
+                cursor.execute(f"""
+                    UPDATE {USERS_TABLE} 
+                    SET sessions_attended = sessions_attended + 1,
+                        total_dance_time = total_dance_time + %s
+                    WHERE id = %s
+                """, (event_duration, user_id))
+
         conn.commit()
 
 # Function to remove interest in an event
@@ -237,10 +247,19 @@ def remove_interest_in_event(request_body : EventInterest):
         with conn.cursor() as cursor:
             # Remove event interest
             cursor.execute(f"DELETE FROM {EVENTS_INTEREST_TABLE} WHERE event_id = %s AND user_id = %s", (event_id, user_id))
-        
+
             # Decrement sessions_attended for the user
             if cursor.rowcount > 0:
-                cursor.execute(f"UPDATE {USERS_TABLE} SET sessions_attended = sessions_attended - 1 WHERE id = %s", (user_id,))
+                # Get event duration
+                cursor.execute(f"SELECT duration_minutes FROM {EVENTS_TABLE} WHERE id = %s", (event_id,))
+                event_duration = cursor.fetchone()[0] # Fetch duration or default to 0
+                
+                cursor.execute(f"""
+                    UPDATE {USERS_TABLE} 
+                    SET sessions_attended = sessions_attended - 1,
+                        total_dance_time = total_dance_time - %s
+                    WHERE id = %s
+                """, (event_duration, user_id))
         conn.commit()
 
 # Function to get all events that a user was interested in 
