@@ -278,7 +278,13 @@ API code is split in the following manner:
     ```json
     {
         "clubs": [
-            1
+            {
+                "id": 1,
+                "name": "UW Hip Hop",
+                "description": "Hip hop dancing woo",
+                "club_tag": "UWHH",
+                "owner_id": 1
+            }
         ]
     }
     ```

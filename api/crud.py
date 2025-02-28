@@ -303,10 +303,29 @@ def get_user_clubs_by_id(user_id: int):
             if cursor.fetchone() is None:
                 raise ValueError("User does not exist")
             
-            cursor.execute(f"SELECT club_id FROM {MEMBERSHIPS_TABLE} WHERE user_id = %s",(user_id,))
+            # Fetch all club details instead of just club IDs
+            cursor.execute(f"""
+                SELECT c.id, c.name, c.description, c.club_tag, c.owner
+                FROM {MEMBERSHIPS_TABLE} m
+                JOIN {CLUBS_TABLE} c ON m.club_id = c.id
+                WHERE m.user_id = %s
+            """, (user_id,))
+
             clubs = cursor.fetchall()
+
+            # Convert query result into a list of dictionaries
+            club_list = [
+                {
+                    "id": club[0],
+                    "name": club[1],
+                    "description": club[2],
+                    "club_tag": club[3],
+                    "owner_id": club[4]
+                }
+                for club in clubs
+            ]
             
-            return [club_id[0] for club_id in clubs]
+            return club_list
 
 # Function to get all members of a club
 def get_club_members_by_id(club_id: int):
