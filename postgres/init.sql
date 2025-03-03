@@ -61,7 +61,7 @@ CREATE TABLE public.club_posts(
     "club" INTEGER REFERENCES clubs (id) ON DELETE CASCADE,
     "description" VARCHAR(500),
     "video_url" VARCHAR(500),
-    "picture_url" VARCHAR(500),
+    "picture_url" VARCHAR(2000),
     "event_id" INTEGER REFERENCES events (id),
     "created_on" TIMESTAMP WITH TIME ZONE NOT NULL
 );

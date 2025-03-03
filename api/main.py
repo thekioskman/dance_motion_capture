@@ -1,7 +1,8 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, UploadFile, Form
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+import boto3
 from db_connect import connect
 from crud import *
 from models import *
@@ -25,6 +26,17 @@ app.add_middleware(
 
 UPLOAD_FOLDER = "/tmp"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
+AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY")
+S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
+
+s3_client = boto3.client(
+    's3',
+    aws_access_key_id=AWS_ACCESS_KEY,
+    aws_secret_access_key=AWS_SECRET_KEY,
+    region_name='us-east-2'  # e.g., 'us-east-1'
+)
 
 @app.delete("/reset")
 def clear_all_data():
@@ -81,18 +93,45 @@ def get_posts(request_body: postsReqest):
         raise HTTPException(status_code=400, detail=str(e))
     
 #create posts
+@app.post("/userpost/create")
+async def upload_post(files: list[UploadFile] = File(...),
+    title: str = Form(...),
+    description: str = Form(...),
+    owner: str = Form(...),
+    createdOn : str = Form(...)):
+
+    print("TESTING")
+    try:
+
+        file_names = []
+        for file in files:
+            file_names.append(file.filename)
+        
+        #add post to the DB with filenames, we can extract the URL back from the filenames
+        #in case we change s3 buckets
+        pic_urls = ",".join(file_names) #up to 9 images in 1 section
+        post_id = create_user_post_db(title, int(owner), description, createdOn, pic_urls)
+
+        s3_urls = []
+        for file in files:
+            # Upload each file to S3
+            s3_client.upload_fileobj(
+                file.file,
+                S3_BUCKET_NAME,
+                f"{post_id}/{file.filename}",
+                ExtraArgs={"ContentType": file.content_type}
+            )
+            s3_url = f"https://{S3_BUCKET_NAME}.s3.us-east-2.amazonaws.com/{post_id}/{file.filename}"
+            s3_urls.append(s3_url)
+
+        return {"message": "Post uploaded successfully", "s3_urls": s3_urls}
+    except Exception as e:
+        return {"error": str(e)}
+
 @app.post("/clubpost/create")
 def create_club_post(request_body: ClubPost):
     try:
         create_club_post_db(request_body)
-        return {"success": True}
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-@app.post("/userpost/create")
-def create_user_post(request_body: UserPost):
-    try:
-        create_user_post_db(request_body)
         return {"success": True}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
