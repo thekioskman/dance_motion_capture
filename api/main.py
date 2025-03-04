@@ -27,15 +27,15 @@ app.add_middleware(
 UPLOAD_FOLDER = "/tmp"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
-AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY")
-S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
+AWS_ACCESS_KEY = "AKIAQXUIXLGG3CCMRFMY"
+AWS_SECRET_KEY = "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"
+S3_BUCKET_NAME = "fydp25stravadance"
 
 s3_client = boto3.client(
     's3',
     aws_access_key_id=AWS_ACCESS_KEY,
     aws_secret_access_key=AWS_SECRET_KEY,
-    region_name='us-east-2'  # e.g., 'us-east-1'
+    region_name='us-east-2'
 )
 
 @app.delete("/reset")
@@ -99,34 +99,29 @@ async def upload_post(files: list[UploadFile] = File(...),
     description: str = Form(...),
     owner: str = Form(...),
     createdOn : str = Form(...)):
-
-    print("TESTING")
     try:
-
         file_names = []
         for file in files:
             file_names.append(file.filename)
-        
+
         #add post to the DB with filenames, we can extract the URL back from the filenames
         #in case we change s3 buckets
         pic_urls = ",".join(file_names) #up to 9 images in 1 section
         post_id = create_user_post_db(title, int(owner), description, createdOn, pic_urls)
 
-        s3_urls = []
         for file in files:
             # Upload each file to S3
             s3_client.upload_fileobj(
                 file.file,
                 S3_BUCKET_NAME,
-                f"{post_id}/{file.filename}",
+                f"user_post/{post_id}-{file.filename}",
                 ExtraArgs={"ContentType": file.content_type}
             )
-            s3_url = f"https://{S3_BUCKET_NAME}.s3.us-east-2.amazonaws.com/{post_id}/{file.filename}"
-            s3_urls.append(s3_url)
-
-        return {"message": "Post uploaded successfully", "s3_urls": s3_urls}
+        
+        return {"message": "Post uploaded successfully"}
     except Exception as e:
-        return {"error": str(e)}
+        print(e)
+        raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/clubpost/create")
 def create_club_post(request_body: ClubPost):

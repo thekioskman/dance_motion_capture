@@ -40,6 +40,7 @@ def fetch_posts(request_body: postsReqest ):
             user_posts = cursor.fetchall()
             user_col_names = [desc[0] for desc in cursor.description]
             user_posts = [dict(zip(user_col_names, row)) for row in user_posts]
+            
 
             cursor.execute(
                 f"SELECT * FROM {CLUB_POSTS_TABLE} WHERE club IN "
