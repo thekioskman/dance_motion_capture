@@ -71,7 +71,8 @@ async def compare_endpoint(video1: UploadFile = File(...), video2: UploadFile = 
     return JSONResponse(content=result)
 
 #Fetch POsts
-@app.get("/posts")
+# TODO: this needs to be changed to GET! But the params into query parameters
+@app.post("/posts")
 #clubs fetch
 def get_posts(request_body: postsUserRequest):
     try:
@@ -122,7 +123,8 @@ def register(request_body: userRegisterData):
         raise HTTPException(status_code=400, detail=str(e))
 
 # Get all events applicable to a user based off the clubs they follow
-@app.get("/user/events")
+# TODO: change this to a get later...
+@app.post("/user/events")
 def get_user_club_events(request_body: postsUserRequest):
     # TODO: somehow get rid of the user_id here...?
     try:
