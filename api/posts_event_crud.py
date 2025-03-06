@@ -60,7 +60,7 @@ def fetch_posts(request_body: postsReqest ):
             else: #order doesnt matter because on of them is empty anyway
                 return user_posts + club_posts
 
-def create_user_post_db(title, owner, desc , created_on, vid_url = None, pic_url = None ):
+def create_user_post_db(title, owner, desc , created_on,  pic_url = None, vid_url = None ):
     timestamp_obj = datetime.fromisoformat(created_on.replace("Z", "+00:00"))
 
     with connect() as conn:
