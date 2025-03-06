@@ -40,6 +40,8 @@ def fetch_posts(request_body: postsReqest ):
             user_posts = cursor.fetchall()
             user_col_names = [desc[0] for desc in cursor.description]
             user_posts = [dict(zip(user_col_names, row)) for row in user_posts]
+            for post in user_posts:
+                post["type"] = "user_post"
             
 
             cursor.execute(
@@ -50,6 +52,8 @@ def fetch_posts(request_body: postsReqest ):
             club_posts = cursor.fetchall()
             club_col_names = [desc[0] for desc in cursor.description]
             club_posts = [dict(zip(club_col_names, row)) for row in club_posts]
+            for post in club_posts:
+                post["type"] = "club_post"
             
             
             if len(user_posts) != 0 and len(club_posts) != 0:
