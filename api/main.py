@@ -8,6 +8,7 @@ from crud import *
 from models import *
 import os
 from posts_event_crud import *
+from clubs_crud import *
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -257,13 +258,13 @@ def get_club_details(club_id: int):
 #         raise HTTPException(status_code=400, detail=f"Error removing member from club: {str(e)}")
 
 # # Get all clubs that a user is in
-# @app.get("/clubs/{username}")
-# def get_user_clubs(username: str):
-#     try:
-#         clubs = get_user_clubs(username)
-#         return {"clubs": clubs}
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=f"Error fetching user clubs: {str(e)}")
+@app.get("/clubs/{user_id}")
+def get_user_clubs(user_id: str):
+    try:
+        clubs = get_user_clubs_db(user_id)
+        return {"clubs": clubs}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error fetching user clubs: {str(e)}")
 
 # # Get all members of a club
 # @app.get("/club/{club_id}/members")
