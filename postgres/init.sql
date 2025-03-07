@@ -61,7 +61,7 @@ CREATE TABLE public.club_posts(
     "club" INTEGER REFERENCES clubs (id) ON DELETE CASCADE,
     "description" VARCHAR(500),
     "video_url" VARCHAR(500),
-    "picture_url" VARCHAR(500),
+    "picture_url" VARCHAR(2000),
     "event_id" INTEGER REFERENCES events (id),
     "created_on" TIMESTAMP WITH TIME ZONE NOT NULL
 );
@@ -91,6 +91,6 @@ CREATE TABLE public.membership(
 
 -- Track the last timestamp of posts the user viewed 
 CREATE TABLE public.post_latest_timestamp(
-    "user_id" INTEGER PRIMARY KEY REFERENCES users (id)
-    "time" TIMESTAMP WITH TIME ZONE NOT NULL
-)
+    "user_id" INTEGER PRIMARY KEY REFERENCES users (id),
+    "last_viewed" TIMESTAMP WITH TIME ZONE NOT NULL
+);
