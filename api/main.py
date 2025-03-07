@@ -262,7 +262,7 @@ def remove_club_member(request_body : ClubMember):
 def get_user_clubs(user_id: str):
     try:
         clubs = get_user_clubs_db(user_id)
-        return {"clubs": clubs}
+        return clubs
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error fetching user clubs: {str(e)}")
 
