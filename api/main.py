@@ -243,7 +243,7 @@ def delete_club(club_id: int):
 @app.post("/club/add_member")
 def add_club_member(request_body : ClubMember):
     try:
-        add_member_to_club_db(request_body.user_id, request_body.club_id)
+        add_member_to_club_db(request_body.club_id, request_body.user_id)
         return {"message": f"User with ID {request_body.user_id} added to club with ID {request_body.club_id}."}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error adding member to club: {str(e)}")
