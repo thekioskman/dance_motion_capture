@@ -231,31 +231,31 @@ def get_club_details(club_id: int):
         raise HTTPException(status_code=400, detail=f"Error fetching club details: {str(e)}")
 
 # # Delete a club
-# @app.delete("/club/delete/{club_id}")
-# def delete_club(club_id: int):
-#     try:
-#         delete_club_by_id(club_id)
-#         return {"message": f"Club with ID {club_id} deleted successfully."}
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=f"Error deleting club: {str(e)}")
+@app.delete("/club/delete/{club_id}")
+def delete_club(club_id: int):
+    try:
+        delete_club_by_id(club_id)
+        return {"message": f"Club with ID {club_id} deleted successfully."}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error deleting club: {str(e)}")
 
 # # Add a member to a club
-# @app.post("/club/{club_id}/add_member")
-# def add_club_member(club_id: int, user_id: int):
-#     try:
-#         add_member_to_club(club_id, user_id)
-#         return {"message": f"User with ID {user_id} added to club with ID {club_id}."}
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=f"Error adding member to club: {str(e)}")
+@app.post("/club/add_member")
+def add_club_member(request_body : ClubMember):
+    try:
+        add_member_to_club_db(request_body.user_id, request_body.club_id)
+        return {"message": f"User with ID {request_body.user_id} added to club with ID {request_body.club_id}."}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error adding member to club: {str(e)}")
 
 # # Remove a member from a club
-# @app.delete("/club/{club_id}/remove_member")
-# def remove_club_member(club_id: int, user_id: int):
-#     try:
-#         remove_member_from_club(club_id, user_id)
-#         return {"message": f"User with ID {user_id} removed from club with ID {club_id}."}
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=f"Error removing member from club: {str(e)}")
+@app.delete("/club/remove_member")
+def remove_club_member(request_body : ClubMember):
+    try:
+        remove_member_from_club(request_body.club_id, request_body.user_id)
+        return {"message": f"User with ID {request_body.user_id} removed from club with ID {request_body.club_id}."}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error removing member from club: {str(e)}")
 
 # # Get all clubs that a user is in
 @app.get("/clubs/{user_id}")
