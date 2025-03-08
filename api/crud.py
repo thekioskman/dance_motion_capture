@@ -217,6 +217,26 @@ def get_user_followers(user_id: int):
             followers = cursor.fetchall()
             
             return [id[0] for id in followers]
+
+def search_users_db(query: str):
+    """
+    Searches for users by username (partial match).
+    Returns a list of matching users.
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"SELECT id, username, first_name, last_name FROM {USERS_TABLE} WHERE username ILIKE %s",
+                (f"%{query}%",)
+            )
+            users = cursor.fetchall()
+
+            if not users:
+                return []
+
+            user_col_names = [desc[0] for desc in cursor.description]
+            return [dict(zip(user_col_names, row)) for row in users]
+
         
 
 

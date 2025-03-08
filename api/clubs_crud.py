@@ -119,6 +119,24 @@ def remove_member_from_club(club_id: int, user_id: int):
             cursor.execute(f"DELETE FROM {MEMBERSHIPS_TABLE} WHERE club_id = %s AND user_id = %s", (club_id, user_id))
             conn.commit()
 
+def search_clubs_db(query: str):
+    """
+    Searches for clubs by name or club_tag (partial match).
+    Returns a list of matching clubs.
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            sql = "SELECT * FROM clubs WHERE name ILIKE %s OR club_tag ILIKE %s"
+            cursor.execute(sql, (f"%{query}%", f"%{query}%"))
+            clubs = cursor.fetchall()
+
+            if not clubs:
+                return []
+
+            club_col_names = [desc[0] for desc in cursor.description]
+            return [dict(zip(club_col_names, row)) for row in clubs]
+
+
 # # Function to get all members of a club
 # def get_club_members_by_id(club_id: int):
 #     with connect() as conn:

@@ -266,6 +266,46 @@ def get_user_clubs(user_id: str):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error fetching user clubs: {str(e)}")
 
+@app.get("/search/clubs")
+def search_clubs(query: str):
+    """
+    API endpoint to search for clubs.
+    """
+    clubs = search_clubs_db(query)
+
+    if not clubs:
+        return JSONResponse(
+            status_code=404,
+            content={"success": False, "message": "No clubs found", "data": []}
+        )
+
+    return JSONResponse(
+        status_code=200,
+        content={"success": True, "message": "Clubs found", "data": clubs}
+    )
+
+
+@app.get("/search/users")
+def search_users(query: str):
+    """
+    API endpoint to search for users.
+    """
+    users = search_users_db(query)
+
+    if not users:
+        return JSONResponse(
+            status_code=404,
+            content={"success": False, "message": "No users found", "data": []}
+        )
+
+    return JSONResponse(
+        status_code=200,
+        content={"success": True, "message": "Users found", "data": users}
+    )
+        
+
+
+
 # # Get all members of a club
 # @app.get("/club/{club_id}/members")
 # def get_club_members(club_id: int):
