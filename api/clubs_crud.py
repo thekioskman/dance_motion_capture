@@ -62,7 +62,14 @@ def create_new_club(owner: int, name: str, description: str, club_tag: str):
             )
             club_id = cursor.fetchone()[0]
             conn.commit()
-            return club_id
+        
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(f"INSERT INTO {MEMBERSHIPS_TABLE} (club_id, user_id) VALUES (%s, %s)", (club_id, owner))
+            conn.commit()
+
+    
+    return club_id
             
 
 # Function to get club by ID
