@@ -1,12 +1,14 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException, Body
+from fastapi import FastAPI, File, UploadFile, HTTPException, UploadFile, Form, Body
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+import boto3
 from db_connect import connect
 from crud import *
 from models import *
 import os
 from posts_event_crud import *
+from clubs_crud import *
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -25,6 +27,17 @@ app.add_middleware(
 
 UPLOAD_FOLDER = "/tmp"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+AWS_ACCESS_KEY = "AKIAQXUIXLGG3CCMRFMY"
+AWS_SECRET_KEY = "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"
+S3_BUCKET_NAME = "fydp25stravadance"
+
+s3_client = boto3.client(
+    's3',
+    aws_access_key_id=AWS_ACCESS_KEY,
+    aws_secret_access_key=AWS_SECRET_KEY,
+    region_name='us-east-2'
+)
 
 @app.delete("/reset")
 def clear_all_data():
@@ -82,6 +95,36 @@ def get_posts(request_body: postsUserRequest):
         raise HTTPException(status_code=400, detail=str(e))
     
 #create posts
+@app.post("/userpost/create")
+async def upload_post(files: list[UploadFile] = File(...),
+    title: str = Form(...),
+    description: str = Form(...),
+    owner: str = Form(...),
+    createdOn : str = Form(...)):
+    try:
+        file_names = []
+        for file in files:
+            file_names.append(file.filename)
+
+        #add post to the DB with filenames, we can extract the URL back from the filenames
+        #in case we change s3 buckets
+        pic_urls = ",".join(file_names) #up to 9 images in 1 section
+        post_id = create_user_post_db(title, int(owner), description, createdOn, pic_urls)
+
+        for file in files:
+            # Upload each file to S3
+            s3_client.upload_fileobj(
+                file.file,
+                S3_BUCKET_NAME,
+                f"user_post/{post_id}-{file.filename}",
+                ExtraArgs={"ContentType": file.content_type}
+            )
+        
+        return {"message": "Post uploaded successfully"}
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=400, detail=str(e))
+
 @app.post("/clubpost/create")
 def create_club_post(request_body: ClubPost):
     try:
@@ -90,10 +133,10 @@ def create_club_post(request_body: ClubPost):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.post("/userpost/create")
-def create_user_post(request_body: UserPost):
+@app.post("/clubevent/create")
+def create_club_event(request_body: ClubEvent):
     try:
-        create_user_post_db(request_body)
+        create_club_event_db(request_body)
         return {"success": True}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -217,6 +260,7 @@ def delete_club(club_id: int):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error deleting club: {str(e)}")
 
+
 # Add a member to a club
 @app.post("/club/{club_id}/members")
 def add_club_member(club_id: int, user_id: int = Body(..., embed=True)):
@@ -243,6 +287,43 @@ def get_user_clubs(user_id: int):
         return {"clubs": clubs}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error fetching user clubs: {str(e)}")
+
+@app.get("/search/clubs")
+def search_clubs(query: str):
+    """
+    API endpoint to search for clubs.
+    """
+    clubs = search_clubs_db(query)
+
+    if not clubs:
+        return JSONResponse(
+            status_code=404,
+            content={"success": False, "message": "No clubs found", "data": []}
+        )
+
+    return JSONResponse(
+        status_code=200,
+        content={"success": True, "message": "Clubs found", "data": clubs}
+    )
+
+
+@app.get("/search/users")
+def search_users(query: str):
+    """
+    API endpoint to search for users.
+    """
+    users = search_users_db(query)
+
+    if not users:
+        return JSONResponse(
+            status_code=404,
+            content={"success": False, "message": "No users found", "data": []}
+        )
+
+    return JSONResponse(
+        status_code=200,
+        content={"success": True, "message": "Users found", "data": users}
+    )
 
 # Get all members of a club
 @app.get("/club/{club_id}/members")

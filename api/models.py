@@ -72,3 +72,7 @@ class ClubEvent(BaseModel):
 class EventInterest(BaseModel):
     user_id : int
     event_id : int
+
+class ClubMember(BaseModel):
+    club_id : int
+    user_id : int

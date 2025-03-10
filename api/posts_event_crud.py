@@ -40,6 +40,9 @@ def fetch_posts(request_body: postsUserRequest ):
             user_posts = cursor.fetchall()
             user_col_names = [desc[0] for desc in cursor.description]
             user_posts = [dict(zip(user_col_names, row)) for row in user_posts]
+            for post in user_posts:
+                post["type"] = "user_post"
+            
 
             cursor.execute(
                 f"SELECT * FROM {CLUB_POSTS_TABLE} WHERE club IN "
@@ -49,6 +52,8 @@ def fetch_posts(request_body: postsUserRequest ):
             club_posts = cursor.fetchall()
             club_col_names = [desc[0] for desc in cursor.description]
             club_posts = [dict(zip(club_col_names, row)) for row in club_posts]
+            for post in club_posts:
+                post["type"] = "club_post"
             
             
             if len(user_posts) != 0 and len(club_posts) != 0:
@@ -59,22 +64,21 @@ def fetch_posts(request_body: postsUserRequest ):
             else: #order doesnt matter because on of them is empty anyway
                 return user_posts + club_posts
 
-def create_user_post_db(request_body : UserPost):
-    title = request_body.title
-    owner = request_body.owner
-    desc = request_body.description
-    vid_url = request_body.video_url
-    pic_url = request_body.picture_url
-    created_on = request_body.created_on
+def create_user_post_db(title, owner, desc , created_on,  pic_url = None, vid_url = None ):
     timestamp_obj = datetime.fromisoformat(created_on.replace("Z", "+00:00"))
 
     with connect() as conn:
-        with conn.cursor() as cursor: 
+        with conn.cursor() as cursor:
             cursor.execute(
-                f"INSERT INTO {USER_POSTS_TABLE} (title, owner, description, video_url, picture_url, created_on) VALUES (%s, %s, %s, %s, %s, %s)",
+                f"INSERT INTO {USER_POSTS_TABLE} (title, owner, description, video_url, picture_url, created_on) "
+                f"VALUES (%s, %s, %s, %s, %s, %s) RETURNING id",
                 (title, owner, desc, vid_url, pic_url, timestamp_obj)
             )
+            # Fetch the returned ID
+            inserted_id = cursor.fetchone()[0]
             conn.commit()
+    
+    return inserted_id
 
 def create_club_post_db(request_body : ClubPost):
     title = request_body.title

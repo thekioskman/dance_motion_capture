@@ -217,115 +217,25 @@ def get_user_followers(user_id: int):
             followers = cursor.fetchall()
             
             return [id[0] for id in followers]
-        
 
-# **Club Operations**
-        
-# Function to create a new club
-def create_new_club(owner: int, name: str, description: str, club_tag: str):
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            # Check if owner exists
-            cursor.execute(f"SELECT id FROM {USERS_TABLE} WHERE id = %s", (owner,))
-            if cursor.fetchone() is None:
-                raise ValueError("Owner does not exist")
-            
-            # Check if club with same name already exists
-            cursor.execute(f"SELECT id FROM {CLUBS_TABLE} WHERE name = %s", (name,))
-            if cursor.fetchone():
-                raise ValueError("A club with this name already exists")
-            
-            # Insert new club
-            cursor.execute(
-                f"""
-                INSERT INTO {CLUBS_TABLE} (owner, name, description, club_tag)
-                VALUES (%s, %s, %s, %s)
-                RETURNING id
-                """,
-                (owner, name, description, club_tag)
-            )
-            club_id = cursor.fetchone()[0]
-            conn.commit()
-            return club_id
-            
-
-# Function to get club by ID
-def get_club_by_id(club_id: int):
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(f"SELECT * FROM {CLUBS_TABLE} WHERE id = %s", (club_id,))
-            club = cursor.fetchone()
-            if club:
-                return {
-                    "id": club[0],
-                    "owner": club[1],
-                    "name": club[2],
-                    "description": club[3],
-                    "club_tag": club[4],
-                }
-            else:
-                raise Exception("Club not found.")
-
-# Function to delete club by ID
-def delete_club_by_id(club_id: int):
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(f"DELETE FROM {CLUBS_TABLE} WHERE id = %s", (club_id,))
-            conn.commit()
-
-# Function to add a member to a club
-def add_member_to_club(club_id: int, user_id: int):
+def search_users_db(query: str):
+    """
+    Searches for users by username (partial match).
+    Returns a list of matching users.
+    """
     with connect() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
-                f"""
-                INSERT INTO {MEMBERSHIPS_TABLE} (user_id, club_id)
-                VALUES (%s, %s)
-                ON CONFLICT (user_id, club_id) DO NOTHING
-                """,
-                (club_id, user_id)
+                f"SELECT id, username, first_name, last_name FROM {USERS_TABLE} WHERE username ILIKE %s",
+                (f"%{query}%",)
             )
-            conn.commit()
+            users = cursor.fetchall()
 
-# Function to remove a member from a club
-def remove_member_from_club(club_id: int, user_id: int):
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(f"DELETE FROM {MEMBERSHIPS_TABLE} WHERE club_id = %s AND user_id = %s", (club_id, user_id))
-            conn.commit()
-
-# Function to get all clubs that a user is a member of
-def get_user_clubs_by_id(user_id: int):
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            # Check if user exists
-            cursor.execute(f"SELECT id FROM {USERS_TABLE} WHERE id = %s", (user_id,))
-            if cursor.fetchone() is None:
-                raise ValueError("User does not exist")
+            if not users:
+                return []
             
-            # Fetch all club details instead of just club IDs
-            cursor.execute(f"""
-                SELECT c.id, c.name, c.description, c.club_tag, c.owner
-                FROM {MEMBERSHIPS_TABLE} m
-                JOIN {CLUBS_TABLE} c ON m.club_id = c.id
-                WHERE m.user_id = %s
-            """, (user_id,))
-
-            clubs = cursor.fetchall()
-
-            # Convert query result into a list of dictionaries
-            club_list = [
-                {
-                    "id": club[0],
-                    "name": club[1],
-                    "description": club[2],
-                    "club_tag": club[3],
-                    "owner_id": club[4]
-                }
-                for club in clubs
-            ]
-            
-            return club_list
+            user_col_names = [desc[0] for desc in cursor.description]
+            return [dict(zip(user_col_names, row)) for row in users]
 
 # Function to get all members of a club
 def get_club_members_by_id(club_id: int):
