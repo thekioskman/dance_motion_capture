@@ -123,7 +123,7 @@ def create_club_event_db(request_body : ClubEvent):
 
 
 # Function to get all club events for a given user
-def get_events_by_club(request_body: postsReqest):
+def get_events_by_user(request_body: postsReqest):
 
     user_id = request_body.user_id
     timestamp = request_body.timestamp
@@ -143,6 +143,22 @@ def get_events_by_club(request_body: postsReqest):
 
             return club_events
 
+# Function to get all events for a given club
+def get_events_by_club(club_id : int):
+      with connect() as conn:
+        with conn.cursor() as cursor:
+            
+            cursor.execute(
+                f"SELECT * FROM {EVENTS_TABLE} where club = %s;",
+                (club_id)
+            )
+              
+            club_events = cursor.fetchall()
+            club_col_names = [desc[0] for desc in cursor.description]
+            club_events = [dict(zip(club_col_names, row)) for row in club_events]
+
+            return club_events
+
 # **Event Interest Operations**
 # Function to add interest in an event
 def add_interest_in_event(request_body : EventInterest):
@@ -153,4 +169,9 @@ def add_interest_in_event(request_body : EventInterest):
     with connect() as conn:
         with conn.cursor() as cursor:
             cursor.execute(f"INSERT INTO {EVENTS_INTEREST_TABLE} (event_id, user_id) VALUES (%s, %s)", (event_id, user_id))
+
+
+def get_interested_events(user_id):
+    pass
+
 

@@ -276,13 +276,13 @@ def get_user_clubs(user_id: str):
 #         raise HTTPException(status_code=400, detail=f"Error fetching club members: {str(e)}")
 
 # # Add a new event to associated club
-# @app.post("/club/{club_id}/event/new")
-# def create_club_event(club_id: int, event: newEvent):
-#     try:
-#         create_new_event(club_id, event)
-#         return {"message": f"New event created for club ID {club_id}."}
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=f"Error creating new event: {str(e)}")
+@app.post("/club/event/new")
+def create_club_event(request_body: ClubEvent):
+    try:
+        create_club_event_db(request_body)
+        return {"message": f"New event created for club ID {request_body.club}."}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error creating new event: {str(e)}")
 
 # # Update an event for a club (edit/adding a video link to a club event)
 # @app.put("/club/{club_id}/event/{event_id}")
@@ -294,28 +294,44 @@ def get_user_clubs(user_id: str):
 # def delete_event(club_id: int, event_id: int):
 #     return crud.delete_event(club_id, event_id)
 
-# # Get all events of a club
-# @app.get("/club/{club_id}/events")
-# def get_club_events(club_id: int):
-#     try:
-#         events = get_events_by_club(club_id)
-#         return {"events": events}
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=f"Error fetching club events: {str(e)}")
+# Get all events for a user based on clubs they are in
+@app.post("/user/events")
+def get_club_events_for_user(request_body : postsReqest):
+    try:
+        events = get_events_by_user(request_body)
+        return {"events": events}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error fetching club events: {str(e)}")
 
-# # User interest in an event
-# @app.post("/event/{event_id}/interest")
-# def add_event_interest(event_id: int, user_id: int):
-#     try:
-#         add_interest_in_event(event_id, user_id)
-#         return {"message": f"User with ID {user_id} is now interested in event with ID {event_id}."}
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=f"Error adding event interest: {str(e)}")
+# User interest in an event
+@app.post("/event/interest")
+def add_event_interest(request_body : EventInterest):
+    try:
+        add_interest_in_event(request_body)
+        return {"message": f"User with ID {request_body.user_id} is now interested in event with ID {request_body.event_id}."}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error adding event interest: {str(e)}")
     
-# # Get all events a user is interested in going to
-# @app.get("/user/{username}/interested_events")
-# def get_user_interested_events(username: str):
-#     return crud.get_user_interested_events(username)
+# Get all events for a given club    
+@app.get("/club/events/{club_id}")
+def get_club_events(club_id : int):
+    try:
+        events = get_events_by_club(club_id)
+        return events
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error fetching club events: {str(e)}")
+
+    
+# Get all events a user is interested in going to
+@app.get("/user/{user_id}/interested_events")
+def get_user_interested_events(user_id : str):
+    try:
+        events = get_interested_events(user_id)
+        return events
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error fetching interested events {str(e)}")
+
+    
 
 # # Get all users interested in an event
 # @app.get("/event/{event_id}/interested")
