@@ -120,7 +120,7 @@ def add_member_to_club(club_id: int, user_id: int):
                 VALUES (%s, %s)
                 ON CONFLICT (user_id, club_id) DO NOTHING
                 """,
-                (club_id, user_id)
+                (user_id, club_id)
             )
             conn.commit()
 
