@@ -7,7 +7,8 @@ CREATE TABLE public.users (
     "last_name" VARCHAR(50) NOT NULL,
     "total_dance_time" INTEGER NOT NULL,
     "sessions_attended" INTEGER NOT NULL,
-    "followers" INTEGER NOT NULL
+    "followers" INTEGER NOT NULL,
+    "following" INTEGER NOT NULL
 );
 
 -- Table keeping track of which other users a user follows

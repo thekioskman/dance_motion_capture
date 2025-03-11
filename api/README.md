@@ -122,7 +122,8 @@ API code is split in the following manner:
             "last_name": "song",
             "total_dance_time": 0,
             "sessions_attended": 0,
-            "followers": 0
+            "followers": 0,
+            "following": 0
         }
     }
     ```
@@ -177,8 +178,44 @@ API code is split in the following manner:
     ```json
     {
         "following": [
-            1,
-            2
+            {
+                "id": 2,
+                "username": "brian",
+                "first_name": "brian",
+                "last_name": "qiu"
+            },
+            {
+                "id": 1,
+                "username": "jilly",
+                "first_name": "jilly",
+                "last_name": "song"
+            }
+        ]
+    }
+    ```
+    - **400 Bad Request**: Invalid input.
+
+### **Get Followers of User**
+- **URL**: `/followers/{user_id}`
+- **Method**: `GET`
+- **Description**: Get all the accounts that follows the passed in user
+- **Response**:
+    - **200 OK**:
+    ```json
+    {
+        "followers": [
+            {
+                "id": 3,
+                "username": "tk",
+                "first_name": "tk",
+                "last_name": "tk"
+            },
+            {
+                "id": 1,
+                "username": "jilly",
+                "first_name": "jilly",
+                "last_name": "song"
+            }
         ]
     }
     ```

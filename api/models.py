@@ -32,6 +32,7 @@ class User(BaseModel):
     total_dance_time: int 
     sessions_attended: int 
     followers: int
+    following: int
 
 class postsUserRequest(BaseModel):
     user_id: int

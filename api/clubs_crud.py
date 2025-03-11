@@ -1,6 +1,6 @@
 import os
 from db_connect import connect
-from models import ClubEvent, ClubPost, UserPost, postsReqest, EventInterest
+from models import ClubEvent, ClubPost, UserPost, postsUserRequest, postsClubRequest, EventInterest
 from datetime import datetime
 
 UPLOAD_FOLDER = "uploads"
