@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException, UploadFile, Form
+from fastapi import FastAPI, File, UploadFile, HTTPException, UploadFile, Form, Body
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -84,9 +84,10 @@ async def compare_endpoint(video1: UploadFile = File(...), video2: UploadFile = 
     return JSONResponse(content=result)
 
 #Fetch POsts
+# TODO: this needs to be changed to GET! But the params into query parameters
 @app.post("/posts")
 #clubs fetch
-def get_posts(request_body: postsReqest):
+def get_posts(request_body: postsUserRequest):
     try:
         response = fetch_posts(request_body)
         return response
@@ -164,6 +165,17 @@ def register(request_body: userRegisterData):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+# Get all events applicable to a user based off the clubs they follow
+# TODO: change this to a get later...
+@app.post("/user/events")
+def get_user_club_events(request_body: postsUserRequest):
+    # TODO: somehow get rid of the user_id here...?
+    try:
+        events = get_events_by_user_id(request_body)
+        return {"events": events}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error fetching club events: {str(e)}")
+
 # Get user details by user id
 @app.get("/user/{user_id}")
 def get_user(user_id: str):
@@ -199,7 +211,7 @@ def remove_following(unfollow_request: userFollowRequest):
 def get_followings(user_id: int):
     try:
         followings = get_user_followings(user_id)
-        return {"following": followings}
+        return {"followings": followings}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error fetching user followings: {str(e)}")
     
@@ -220,7 +232,16 @@ def create_club(club: newClub):
         return {"message": f"New Club '{club.name}' was created successfully", "club_id": club_id}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error creating new club: {str(e)}")
-    
+
+# Get all events by a club
+@app.get("/club/events")
+def get_club_events(request_body: postsClubRequest):
+    try:
+        events = get_events_by_club_id(request_body)
+        return {"events": events}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error fetching club events: {str(e)}") 
+
 # Get club details by id
 @app.get("/club/{club_id}")
 def get_club_details(club_id: int):
@@ -230,8 +251,8 @@ def get_club_details(club_id: int):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error fetching club details: {str(e)}")
 
-# # Delete a club
-@app.delete("/club/delete/{club_id}")
+# Delete a club
+@app.delete("/club/{club_id}")
 def delete_club(club_id: int):
     try:
         delete_club_by_id(club_id)
@@ -239,30 +260,31 @@ def delete_club(club_id: int):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error deleting club: {str(e)}")
 
-# # Add a member to a club
-@app.post("/club/add_member")
-def add_club_member(request_body : ClubMember):
+
+# Add a member to a club
+@app.post("/club/{club_id}/members")
+def add_club_member(club_id: int, user_id: int = Body(..., embed=True)):
     try:
-        add_member_to_club_db(request_body.club_id, request_body.user_id)
-        return {"message": f"User with ID {request_body.user_id} added to club with ID {request_body.club_id}."}
+        add_member_to_club(club_id, user_id)
+        return {"message": f"User with ID {user_id} added to club with ID {club_id}."}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error adding member to club: {str(e)}")
 
-# # Remove a member from a club
-@app.delete("/club/remove_member")
-def remove_club_member(request_body : ClubMember):
+# Remove a member from a club
+@app.delete("/club/{club_id}/members/{user_id}")
+def remove_club_member(club_id: int, user_id: int):
     try:
-        remove_member_from_club(request_body.club_id, request_body.user_id)
-        return {"message": f"User with ID {request_body.user_id} removed from club with ID {request_body.club_id}."}
+        remove_member_from_club(club_id, user_id)
+        return {"message": f"User with ID {user_id} removed from club with ID {club_id}."}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error removing member from club: {str(e)}")
 
-# # Get all clubs that a user is in
-@app.get("/clubs/{user_id}")
-def get_user_clubs(user_id: str):
+# Get all clubs that a user is in
+@app.get("/user/{user_id}/clubs")
+def get_user_clubs(user_id: int):
     try:
-        clubs = get_user_clubs_db(user_id)
-        return clubs
+        clubs = get_user_clubs_by_id(user_id)
+        return {"clubs": clubs}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error fetching user clubs: {str(e)}")
 
@@ -302,74 +324,86 @@ def search_users(query: str):
         status_code=200,
         content={"success": True, "message": "Users found", "data": users}
     )
-        
 
+# Get all members of a club
+@app.get("/club/{club_id}/members")
+def get_club_members(club_id: int):
+    try:
+        members = get_club_members_by_id(club_id)
+        return {"members": members}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error fetching club members: {str(e)}")
 
-
-# # Get all members of a club
-# @app.get("/club/{club_id}/members")
-# def get_club_members(club_id: int):
-#     try:
-#         members = get_club_members_by_id(club_id)
-#         return {"members": members}
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=f"Error fetching club members: {str(e)}")
-
-# # Add a new event to associated club
-# @app.post("/club/{club_id}/event/new")
-# def create_club_event(club_id: int, event: newEvent):
-#     try:
-#         create_new_event(club_id, event)
-#         return {"message": f"New event created for club ID {club_id}."}
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=f"Error creating new event: {str(e)}")
-
-# # Update an event for a club (edit/adding a video link to a club event)
-# @app.put("/club/{club_id}/event/{event_id}")
-# def update_event_video_link(club_id: int, event_id: int, video_link: str):
-#     return crud.update_event_video_link(club_id, event_id, video_link)
-
-# # Delete an event from a club
-# @app.delete("/club/{club_id}/event/{event_id}")
-# def delete_event(club_id: int, event_id: int):
-#     return crud.delete_event(club_id, event_id)
-
-# # Get all events of a club
-# @app.get("/club/{club_id}/events")
-# def get_club_events(club_id: int):
-#     try:
-#         events = get_events_by_club(club_id)
-#         return {"events": events}
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=f"Error fetching club events: {str(e)}")
-
-# # User interest in an event
-# @app.post("/event/{event_id}/interest")
-# def add_event_interest(event_id: int, user_id: int):
-#     try:
-#         add_interest_in_event(event_id, user_id)
-#         return {"message": f"User with ID {user_id} is now interested in event with ID {event_id}."}
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=f"Error adding event interest: {str(e)}")
+# Create an event for a club
+@app.post("/events/create")
+def create_club_event(request_body: ClubEvent):
+    try:
+        event_id = create_club_event_db(request_body)
+        return {"event_id": event_id}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     
-# # Get all events a user is interested in going to
-# @app.get("/user/{username}/interested_events")
-# def get_user_interested_events(username: str):
-#     return crud.get_user_interested_events(username)
+# User interest in an event
+@app.post("/events/interest")
+def add_event_interest(request_body: EventInterest):
+    try:
+        add_interest_in_event(request_body)
+        return {"message": f"User with ID {request_body.user_id} is now interested in event with ID {request_body.event_id}."}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error adding event interest: {str(e)}")
+    
+# Delete event interest
+@app.delete("/events/interest")
+def delete_event_interest(request_body: EventInterest):
+    try:
+        remove_interest_in_event(request_body)
+        return {"message": f"User with ID {request_body.user_id} is no longer interested in event with ID {request_body.event_id}."}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error removing event interest: {str(e)}")
+    
 
-# # Get all users interested in an event
-# @app.get("/event/{event_id}/interested")
-# def get_users_interested_in_event(event_id: int):
-#     try:
-#         interested_users = get_interested_users_in_event(event_id)
-#         return {"interested_users": interested_users}
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=f"Error fetching event interest data: {str(e)}")
+# Update an event for a club (edit/adding a video link to a club event)
+@app.patch("/events/{event_id}")
+def update_event_video_link(event_id: int, video_url: str = Body(..., embed=True)):
+    try:
+        updated_event = add_video_to_event(event_id, video_url)
+        return {"event_id": updated_event["event_id"], "video_url": updated_event["video_url"]}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error updating event: {str(e)}")
 
-# # Delete event interest
-# @app.delete("/user/{username}/event/{event_id}/interest")
-# def delete_event_interest(username: str, event_id: int):
-#     return crud.delete_event_interest(username, event_id)
+# Delete an event from a club based on event id
+@app.delete("/events/{event_id}")
+def delete_event(event_id: int):
+    try:
+        result = delete_event_by_id(event_id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error deleting event: {str(e)}")
+    
+    if result["success"]:
+            return {"message": result["message"]}
+    else:
+        raise HTTPException(status_code=404, detail=result["message"])
+    
+# Get all events a user is interested in going to
+@app.get("/user/{user_id}/interested")
+def get_user_interested_events(user_id: int):
+    try:
+        events = get_interested_events_by_user_id(user_id)
+        return {"events": events}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error fetching club events: {str(e)}") 
+
+# Get all users interested in an event
+@app.get("/events/{event_id}/interested")
+def get_user_interested_events(event_id: int):
+    try:
+        users = get_interested_users_by_event_id(event_id)
+        return {"users": users}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error fetching users interested in event: {str(e)}") 
+
 
 @app.get("/")
 def hello_world():

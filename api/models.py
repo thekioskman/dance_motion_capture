@@ -32,9 +32,14 @@ class User(BaseModel):
     total_dance_time: int 
     sessions_attended: int 
     followers: int
+    following: int
 
-class postsReqest(BaseModel):
+class postsUserRequest(BaseModel):
     user_id: int
+    timestamp: str
+
+class postsClubRequest(BaseModel):
+    club_id: int
     timestamp: str
 
 class ClubPost(BaseModel):
@@ -55,9 +60,9 @@ class UserPost(BaseModel):
     created_on : str
 
 class ClubEvent(BaseModel):
-    club : int
+    club_id: int
     title : str
-    name : str    
+    description : str    
     date : str
     time : str
     duration_minutes :  int

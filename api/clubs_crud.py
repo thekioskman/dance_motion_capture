@@ -1,6 +1,6 @@
 import os
 from db_connect import connect
-from models import ClubEvent, ClubPost, UserPost, postsReqest, EventInterest
+from models import ClubEvent, ClubPost, UserPost, postsUserRequest, postsClubRequest, EventInterest
 from datetime import datetime
 
 UPLOAD_FOLDER = "uploads"
@@ -17,24 +17,38 @@ CLUB_POST_COMMENTS_TABLE = "club_post_comments"
 EVENTS_INTEREST_TABLE = "event_interest"
 MEMBERSHIPS_TABLE = "membership"
 
-def get_user_clubs_db(user_id):
-    '''
-    Gets a list of clubs that the user is in
-    '''
+# Function to get all clubs that a user is a member of
+def get_user_clubs_by_id(user_id: int):
     with connect() as conn:
         with conn.cursor() as cursor:
-            #fetch posts from all people they are following
-            cursor.execute(
-                   f"""
-                    SELECT * FROM {CLUBS_TABLE} WHERE id in (SELECT club_id FROM {MEMBERSHIPS_TABLE} WHERE user_id = %s)
-                    """,
-                    (user_id)
-            )
+            # Check if user exists
+            cursor.execute(f"SELECT id FROM {USERS_TABLE} WHERE id = %s", (user_id,))
+            if cursor.fetchone() is None:
+                raise ValueError("User does not exist")
+            
+            # Fetch all club details instead of just club IDs
+            cursor.execute(f"""
+                SELECT c.id, c.name, c.description, c.club_tag, c.owner
+                FROM {MEMBERSHIPS_TABLE} m
+                JOIN {CLUBS_TABLE} c ON m.club_id = c.id
+                WHERE m.user_id = %s
+            """, (user_id,))
+
             clubs = cursor.fetchall()
-            clubs_col_names = [desc[0] for desc in cursor.description]
-            clubs = [dict(zip(clubs_col_names, row)) for row in clubs]
-           
-            return clubs
+
+            # Convert query result into a list of dictionaries
+            club_list = [
+                {
+                    "id": club[0],
+                    "name": club[1],
+                    "description": club[2],
+                    "club_tag": club[3],
+                    "owner_id": club[4]
+                }
+                for club in clubs
+            ]
+            
+            return club_list
             
 
 # Function to create a new club
@@ -89,27 +103,25 @@ def get_club_by_id(club_id: int):
             else:
                 raise Exception("Club not found.")
 
-# # Function to delete club by ID
+# Function to delete club by ID
 def delete_club_by_id(club_id: int):
-
-    #first delete all of this clubs entries in the membership table
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(f"DELETE FROM {MEMBERSHIPS_TABLE} WHERE club_id = %s", (club_id,))
-            conn.commit()
-
-
-    #then delete the club itself
     with connect() as conn:
         with conn.cursor() as cursor:
             cursor.execute(f"DELETE FROM {CLUBS_TABLE} WHERE id = %s", (club_id,))
             conn.commit()
 
 # # Function to add a member to a club
-def add_member_to_club_db(club_id: int, user_id: int):
+def add_member_to_club(club_id: int, user_id: int):
     with connect() as conn:
         with conn.cursor() as cursor:
-            cursor.execute(f"INSERT INTO {MEMBERSHIPS_TABLE} (club_id, user_id) VALUES (%s, %s)", (club_id, user_id))
+            cursor.execute(
+                f"""
+                INSERT INTO {MEMBERSHIPS_TABLE} (user_id, club_id)
+                VALUES (%s, %s)
+                ON CONFLICT (user_id, club_id) DO NOTHING
+                """,
+                (club_id, user_id)
+            )
             conn.commit()
 
 # # Function to remove a member from a club

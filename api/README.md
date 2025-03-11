@@ -122,7 +122,8 @@ API code is split in the following manner:
             "last_name": "song",
             "total_dance_time": 0,
             "sessions_attended": 0,
-            "followers": 0
+            "followers": 0,
+            "following": 0
         }
     }
     ```
@@ -176,9 +177,45 @@ API code is split in the following manner:
     - **200 OK**:
     ```json
     {
-        "following": [
-            1,
-            2
+        "followings": [
+            {
+                "id": 2,
+                "username": "brian",
+                "first_name": "brian",
+                "last_name": "qiu"
+            },
+            {
+                "id": 1,
+                "username": "jilly",
+                "first_name": "jilly",
+                "last_name": "song"
+            }
+        ]
+    }
+    ```
+    - **400 Bad Request**: Invalid input.
+
+### **Get Followers of User**
+- **URL**: `/followers/{user_id}`
+- **Method**: `GET`
+- **Description**: Get all the accounts that follows the passed in user
+- **Response**:
+    - **200 OK**:
+    ```json
+    {
+        "followers": [
+            {
+                "id": 3,
+                "username": "tk",
+                "first_name": "tk",
+                "last_name": "tk"
+            },
+            {
+                "id": 1,
+                "username": "jilly",
+                "first_name": "jilly",
+                "last_name": "song"
+            }
         ]
     }
     ```
@@ -201,7 +238,284 @@ API code is split in the following manner:
     - **200 OK**:
     ```json
     {
-        "message": "johndoe successfully unfollowed brian"
+        "message": "New Club 'UW Hip Hop' was created successfully",
+        "club_id": 2
+    }
+    ```
+    - **400 Bad Request**: Invalid input.
+
+### **Get Club Details**
+- **URL**: `/club/{club_id}`
+- **Method**: `GET`
+- **Description**: Get details of a club by club id (returned when a new club is created)
+- **Response**:
+    - **200 OK**:
+    ```json
+    {
+        "id": 2,
+        "owner": 1,
+        "name": "UW Hip Hop",
+        "description": "Hip hop dancing woo",
+        "club_tag": "UWHH"
+    }
+    ```
+    - **400 Bad Request**: Invalid input.
+
+### **Delete Club**
+- **URL**: `/club/{club_id}`
+- **Method**: `DELETE`
+- **Description**: Delete a club based on club id
+- **Response**:
+    - **200 OK**:
+    ```json
+    {
+        "message": "Club with ID 2 deleted successfully."
+    }
+    ```
+    - **400 Bad Request**: Invalid input.
+
+### **Add Member to Club**
+- **URL**: `/club/{club_id}/members`
+- **Method**: `POST`
+- **Description**: Add a new club
+- **Request Body**:
+    ```json
+    {
+        "user_id": 1,
+    }
+    ```
+- **Response**:
+    - **200 OK**:
+    ```json
+    {
+        "message": "User with ID 1 added to club with ID 1."
+    }
+    ```
+    - **400 Bad Request**: Invalid input.
+
+### **Delete Member from a Club**
+- **URL**: `/club/{club_id}/members/{user_id}`
+- **Method**: `DELETE`
+- **Description**: Remove a member from a club
+- **Response**:
+    - **200 OK**:
+    ```json
+    {
+        "message": "User with ID 1 removed from club with ID 1."
+    }
+    ```
+    - **400 Bad Request**: Invalid input.
+
+### **Get User Clubs**
+- **URL**: `/user/{user_id}/clubs`
+- **Method**: `GET`
+- **Description**: Get all club_ids for clubs that a user is in
+- **Response**:
+    - **200 OK**:
+    ```json
+    {
+        "clubs": [
+            {
+                "id": 1,
+                "name": "UW Hip Hop",
+                "description": "Hip hop dancing woo",
+                "club_tag": "UWHH",
+                "owner_id": 1
+            }
+        ]
+    }
+    ```
+    - **400 Bad Request**: Invalid input.
+
+### **Get Members of Club**
+- **URL**: `/club/{club_id}/members`
+- **Method**: `GET`
+- **Description**: Get all user_ids for a club (all member of a club)
+- **Response**:
+    - **200 OK**:
+    ```json
+    {
+        "members": [
+            1
+        ]
+    }
+    ```
+    - **400 Bad Request**: Invalid input.
+
+### **Add a Club Event**
+- **URL**: `/events/create`
+- **Method**: `POST`
+- **Description**: Add a new event for a club
+- **Request Body**:
+    ```json
+    {
+        "club_id": 1,
+        "title": "Jilly Choreographer Session",
+        "description": "description",    
+        "date": "2025-03-10",
+        "time": "18:00:00+00:00",
+        "duration_minutes": 90,
+        "location": "E7",
+        "created_on": "2025-02-18T12:00:00Z"
+    }
+    ```
+- **Response**:
+    - **200 OK**:
+    ```json
+    {
+        "event_id": 7
+    }
+    ```
+    - **400 Bad Request**: Invalid input.
+
+### **Add Video to a Club Event**
+- **URL**: `/events/{event_id}`
+- **Method**: `PATCH`
+- **Description**: Add a video to an event
+- **Request Body**:
+    ```json
+    {
+        "video_url": "https://www.youtube.com/watch?v=RCtCxGQiV8Q&list=RDRCtCxGQiV8Q&start_radio=1"
+    }
+    ```
+- **Response**:
+    - **200 OK**:
+    ```json
+    {
+        "event_id": 2,
+        "video_url": "https://www.youtube.com/watch?v=RCtCxGQiV8Q&list=RDRCtCxGQiV8Q&start_radio=1"
+    }
+    ```
+    - **400 Bad Request**: Invalid input.
+
+### **Delete Club Event**
+- **URL**: `/events/{event_id}`
+- **Method**: `DELETE`
+- **Description**: Delete a club event by event id
+- **Response**:
+    - **200 OK**:
+    ```json
+    {
+        "message": "Event deleted successfully."
+    }
+    ```
+    - **404 Event Not Found**: Event with event_id not found
+    ```json
+    {
+        "detail": "No event found with the given ID."
+    }
+    ```
+    - **400 Bad Request**: Invalid input.
+
+### **Get All User Events**
+- **URL**: `/user/events`
+- **Method**: `GET`
+- **Description**: Get all events for a user based on all the clubs they are a member of
+- **Request Body**:
+    ```json
+    {
+        "user_id": 1,
+        "timestamp": "2025-02-18T12:00:00Z"
+    }
+    ```
+- **Response**:
+    - **200 OK**:
+    ```json
+        {
+        "events": [
+            {
+                "id": 1,
+                "title": "Jilly Choreographer Session",
+                "club": 1,
+                "description": "description",
+                "date": "2025-03-10",
+                "time": "18:00:00+00:00",
+                "duration_minutes": 90,
+                "location": "E7",
+                "picture_url": null,
+                "video_url": null,
+                "created_on": "2025-02-18T12:00:00+00:00"
+            }
+        ]
+    }
+    ```
+    - **400 Bad Request**: Invalid input.
+
+### **Get All Club Events**
+- **URL**: `/club/events`
+- **Method**: `GET`
+- **Description**: Get all events for a given club
+- **Request Body**:
+    ```json
+    {
+        "club_id": 1,
+        "timestamp": "2025-02-18T12:00:00Z"
+    }
+    ```
+- **Response**:
+    - **200 OK**:
+    ```json
+    {
+        "events": [
+            {
+                "id": 1,
+                "title": "Jilly Choreographer Session",
+                "club": 1,
+                "description": "description",
+                "date": "2025-03-10",
+                "time": "18:00:00+00:00",
+                "duration_minutes": 90,
+                "location": "E7",
+                "picture_url": null,
+                "video_url": null,
+                "created_on": "2025-02-18T12:00:00+00:00"
+            }
+        ]
+    }
+    ```
+    - **400 Bad Request**: Invalid input.
+
+### **Get All User Interested Events**
+- **URL**: `/user/{user_id}/interested`
+- **Method**: `GET`
+- **Description**: Get all events that a user has indicated interest in
+- **Response**:
+    - **200 OK**:
+    ```json
+    {
+        "events": [
+            {
+                "id": 1,
+                "title": "Jilly Choreographer Session",
+                "club": 1,
+                "description": "description",
+                "date": "2025-03-10",
+                "time": "18:00:00+00:00",
+                "duration_minutes": 90,
+                "location": "E7",
+                "picture_url": null,
+                "video_url": null,
+                "created_on": "2025-02-18T12:00:00+00:00"
+            }
+        ]
+    }
+    ```
+    - **400 Bad Request**: Invalid input.
+
+### **Get All Users Interested in Event**
+- **URL**: `/user/{user_id}/interested`
+- **Method**: `GET`
+- **Description**: Get all users that are interested in a particular event
+- **Response**:
+    - **200 OK**:
+    ```json
+    {
+        "users": [
+            {
+                "user_id": 1,
+                "username": "jilly"
+            }
+        ]
     }
     ```
     - **400 Bad Request**: Invalid input.

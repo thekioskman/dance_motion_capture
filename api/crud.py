@@ -61,8 +61,8 @@ def register_user(request_body: userRegisterData):
 
             # Insert the new user into the users table
             cursor.execute(
-                f"INSERT INTO {USERS_TABLE} (username, password, first_name, last_name, total_dance_time, sessions_attended, followers) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                (username, hashed_password, first_name, last_name, 0, 0, 0)
+                f"INSERT INTO {USERS_TABLE} (username, password, first_name, last_name, total_dance_time, sessions_attended, followers, following) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                (username, hashed_password, first_name, last_name, 0, 0, 0, 0)
             )
             conn.commit()
 
@@ -92,7 +92,7 @@ def authenticate_user(request_body: userLoginData):
 def get_user_by_id(user_id: int):
     with connect() as conn:
         with conn.cursor() as cursor: 
-            cursor.execute(f"SELECT username, first_name, last_name, total_dance_time, sessions_attended, followers FROM {USERS_TABLE} WHERE id = %s", (user_id,))
+            cursor.execute(f"SELECT username, first_name, last_name, total_dance_time, sessions_attended, followers, following FROM {USERS_TABLE} WHERE id = %s", (user_id,))
             user_data = cursor.fetchone()
 
             if not user_data:
@@ -105,7 +105,8 @@ def get_user_by_id(user_id: int):
                 last_name=user_data[2],
                 total_dance_time=user_data[3],
                 sessions_attended=user_data[4],
-                followers=user_data[5]
+                followers=user_data[5],
+                following=user_data[6],
             )
         
 # **Video Comparison Operations**
@@ -148,6 +149,13 @@ def add_follower_following(follower_id: int, following_id: int):
                     WHERE id = %s
                 """, (following_id,))
 
+                # Increment the following count of the user following other user
+                cursor.execute(f"""
+                    UPDATE {USERS_TABLE}
+                    SET following = following + 1
+                    WHERE id = %s
+                """, (follower_id,))
+
             conn.commit()
 
 # Function to remove a follower following relationship
@@ -169,12 +177,19 @@ def remove_follower_following(follower_id: int, following_id: int):
             
             # Only decrement if follow relationship existed
             if cursor.rowcount > 0:
-                # Decrement the followers count of the followed user
+                # Decrement the followers count of the unfollowed user
                 cursor.execute(f"""
                     UPDATE {USERS_TABLE}
                     SET followers = followers - 1
                     WHERE id = %s
                 """, (following_id,))
+
+                # Decrement the following count of the user unfollowing other user
+                cursor.execute(f"""
+                    UPDATE {USERS_TABLE}
+                    SET following = following - 1
+                    WHERE id = %s
+                """, (follower_id,))
 
             conn.commit()
 
@@ -187,16 +202,27 @@ def get_user_followings(user_id: int):
             if not user_id:
                 raise Exception(f"User: {user_id} not found.")
             
-            # Fetch all usernames that this user follows
+            # Fetch all users that this user follows
             cursor.execute(f"""
-                SELECT u.id 
+                SELECT u.id, u.username, u.first_name, u.last_name
                 FROM {USERS_TABLE} u 
                 JOIN {USER_FOLLOWINGS_TABLE} f ON f.following_id = u.id 
                 WHERE f.user_id = %s
             """, (user_id,))
             followings = cursor.fetchall()
+
+            # Convert query result into a list of dictionaries
+            followings_list = [
+                {
+                    "id": user[0],
+                    "username": user[1],
+                    "first_name": user[2],
+                    "last_name": user[3]
+                }
+                for user in followings
+            ]
             
-            return [id[0] for id in followings]
+            return followings_list
         
 # Function to get all followers of a user
 def get_user_followers(user_id: int):
@@ -209,14 +235,24 @@ def get_user_followers(user_id: int):
             
             # Fetch all usernames that follows this user
             cursor.execute(f"""
-                SELECT u.id 
+                SELECT u.id, u.username, u.first_name, u.last_name
                 FROM {USER_FOLLOWINGS_TABLE} f 
                 JOIN {USERS_TABLE} u ON f.user_id = u.id 
                 WHERE f.following_id = %s
             """, (user_id,))
             followers = cursor.fetchall()
+
+            followers_list = [
+                {
+                    "id": user[0],
+                    "username": user[1],
+                    "first_name": user[2],
+                    "last_name": user[3]
+                }
+                for user in followers
+            ]
             
-            return [id[0] for id in followers]
+            return followers_list
 
 def search_users_db(query: str):
     """
@@ -233,11 +269,16 @@ def search_users_db(query: str):
 
             if not users:
                 return []
-
+            
             user_col_names = [desc[0] for desc in cursor.description]
             return [dict(zip(user_col_names, row)) for row in users]
 
+# Function to get all members of a club
+def get_club_members_by_id(club_id: int):
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(f"SELECT user_id FROM {MEMBERSHIPS_TABLE} WHERE club_id = %s", (club_id,))
+            members = cursor.fetchall()
+            return [member[0] for member in members]
+
         
-
-
-

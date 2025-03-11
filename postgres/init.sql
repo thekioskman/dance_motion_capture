@@ -7,7 +7,8 @@ CREATE TABLE public.users (
     "last_name" VARCHAR(50) NOT NULL,
     "total_dance_time" INTEGER NOT NULL,
     "sessions_attended" INTEGER NOT NULL,
-    "followers" INTEGER NOT NULL
+    "followers" INTEGER NOT NULL,
+    "following" INTEGER NOT NULL
 );
 
 -- Table keeping track of which other users a user follows
@@ -44,13 +45,13 @@ CREATE TABLE public.events(
     "id" SERIAL PRIMARY KEY,
     "title" VARCHAR(500),
     "club" INTEGER REFERENCES clubs (id) ON DELETE CASCADE,
-    "name" VARCHAR(50) UNIQUE NOT NULL,
     "description" VARCHAR(500),
     "date" date NOT NULL,
     "time" time with time zone,
     "duration_minutes" INTEGER,
     "location" VARCHAR(50) NOT NULL,
     "picture_url" VARCHAR(500),
+    "video_url" VARCHAR(500),
     "created_on" TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
@@ -85,12 +86,14 @@ CREATE TABLE public.event_interest(
 -- Table to show what clubs users are part of
 CREATE TABLE public.membership(
     "id" SERIAL PRIMARY KEY,
-    "user_id" INTEGER REFERENCES users (id),
-    "club_id" INTEGER REFERENCES clubs (id)
+    "user_id" INTEGER REFERENCES users (id) ON DELETE CASCADE,
+    "club_id" INTEGER REFERENCES clubs (id) ON DELETE CASCADE,
+    UNIQUE (user_id, club_id)
 );
 
 -- Track the last timestamp of posts the user viewed 
 CREATE TABLE public.post_latest_timestamp(
     "user_id" INTEGER PRIMARY KEY REFERENCES users (id),
+    "time" TIMESTAMP WITH TIME ZONE NOT NULL,
     "last_viewed" TIMESTAMP WITH TIME ZONE NOT NULL
 );
