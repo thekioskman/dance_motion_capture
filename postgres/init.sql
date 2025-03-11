@@ -94,6 +94,6 @@ CREATE TABLE public.membership(
 -- Track the last timestamp of posts the user viewed 
 CREATE TABLE public.post_latest_timestamp(
     "user_id" INTEGER PRIMARY KEY REFERENCES users (id),
-    "time" TIMESTAMP WITH TIME ZONE NOT NULL
+    "time" TIMESTAMP WITH TIME ZONE NOT NULL,
     "last_viewed" TIMESTAMP WITH TIME ZONE NOT NULL
 );
