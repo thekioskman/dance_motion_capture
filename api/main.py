@@ -211,7 +211,7 @@ def remove_following(unfollow_request: userFollowRequest):
 def get_followings(user_id: int):
     try:
         followings = get_user_followings(user_id)
-        return {"following": followings}
+        return {"followings": followings}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error fetching user followings: {str(e)}")
     

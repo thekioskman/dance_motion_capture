@@ -177,7 +177,7 @@ API code is split in the following manner:
     - **200 OK**:
     ```json
     {
-        "following": [
+        "followings": [
             {
                 "id": 2,
                 "username": "brian",
