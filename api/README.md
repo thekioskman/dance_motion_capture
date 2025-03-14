@@ -336,7 +336,18 @@ API code is split in the following manner:
     ```json
     {
         "members": [
-            1
+            {
+                "id": 2,
+                "username": "brian",
+                "first_name": "brian",
+                "last_name": "qiu"
+            },
+            {
+                "id": 1,
+                "username": "jilly",
+                "first_name": "jilly",
+                "last_name": "song"
+            }
         ]
     }
     ```
