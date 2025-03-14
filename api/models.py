@@ -67,6 +67,8 @@ class ClubEvent(BaseModel):
     time : str
     duration_minutes :  int
     location : str
+    latitude : str
+    longitude : str
     picture_url : Optional[str] = None
     created_on : str
 
