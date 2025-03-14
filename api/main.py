@@ -234,7 +234,7 @@ def create_club(club: newClub):
         raise HTTPException(status_code=400, detail=f"Error creating new club: {str(e)}")
 
 # Get all events by a club
-@app.get("/club/events")
+@app.post("/club/events")
 def get_club_events(request_body: postsClubRequest):
     try:
         events = get_events_by_club_id(request_body)
