@@ -234,7 +234,7 @@ def create_club(club: newClub):
         raise HTTPException(status_code=400, detail=f"Error creating new club: {str(e)}")
 
 # Get all events by a club
-@app.get("/club/events")
+@app.post("/club/events")
 def get_club_events(request_body: postsClubRequest):
     try:
         events = get_events_by_club_id(request_body)
@@ -269,6 +269,7 @@ def add_club_member(club_id: int, user_id: int = Body(..., embed=True)):
         return {"message": f"User with ID {user_id} added to club with ID {club_id}."}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error adding member to club: {str(e)}")
+
 
 # Remove a member from a club
 @app.delete("/club/{club_id}/members/{user_id}")
