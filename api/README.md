@@ -454,7 +454,7 @@ API code is split in the following manner:
 
 ### **Get All Club Events**
 - **URL**: `/club/events`
-- **Method**: `GET`
+- **Method**: `POST`
 - **Description**: Get all events for a given club
 - **Request Body**:
     ```json
