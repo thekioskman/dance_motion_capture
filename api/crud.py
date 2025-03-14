@@ -277,8 +277,24 @@ def search_users_db(query: str):
 def get_club_members_by_id(club_id: int):
     with connect() as conn:
         with conn.cursor() as cursor:
-            cursor.execute(f"SELECT user_id FROM {MEMBERSHIPS_TABLE} WHERE club_id = %s", (club_id,))
+            cursor.execute(f"""
+                SELECT u.id, u.username, u.first_name, u.last_name
+                FROM {USERS_TABLE} u
+                JOIN {MEMBERSHIPS_TABLE} mt ON mt.user_id = u.id
+                WHERE club_id = %s
+            """, (club_id,))
             members = cursor.fetchall()
-            return [member[0] for member in members]
+
+            members_list = [
+                {
+                    "id": user[0],
+                    "username": user[1],
+                    "first_name": user[2],
+                    "last_name": user[3]
+                }
+                for user in members
+            ]
+
+            return members_list
 
         
