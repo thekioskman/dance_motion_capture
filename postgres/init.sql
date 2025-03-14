@@ -49,7 +49,8 @@ CREATE TABLE public.events(
     "date" date NOT NULL,
     "time" time with time zone,
     "duration_minutes" INTEGER,
-    "location" VARCHAR(50) NOT NULL,
+    "latitude" NUMERIC(9, 6),
+    "longitude" NUMERIC(9, 6)
     "picture_url" VARCHAR(500),
     "video_url" VARCHAR(500),
     "created_on" TIMESTAMP WITH TIME ZONE NOT NULL
