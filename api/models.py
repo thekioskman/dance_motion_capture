@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from datetime import date, time
 
 # Request body model
 class userRegisterData(BaseModel):
@@ -64,11 +65,10 @@ class ClubEvent(BaseModel):
     title : str
     description : str    
     date : str
-    time : str
-    duration_minutes :  int
+    duration_minutes :  str
     location : str
-    latitude : str
-    longitude : str
+    latitude : float
+    longitude : float
     picture_url : Optional[str] = None
     created_on : str
 

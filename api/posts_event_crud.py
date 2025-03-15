@@ -105,10 +105,12 @@ def create_club_event_db(request_body : ClubEvent):
     club_id = request_body.club_id
     title = request_body.title
     description = request_body.description
-    date = request_body.date
-    time = request_body.time
-    duration_minutes = request_body.duration_minutes
+    date = datetime.fromisoformat(request_body.date).date()
+    time = datetime.fromisoformat(request_body.date).time()
+    duration_minutes = int(request_body.duration_minutes)
     location = request_body.location
+    longitude = request_body.longitude
+    latitude = request_body.latitude
     picture_url = request_body.picture_url
     created_on  = request_body.created_on
     timestamp_obj = datetime.fromisoformat(created_on.replace("Z", "+00:00"))
@@ -116,9 +118,9 @@ def create_club_event_db(request_body : ClubEvent):
     with connect() as conn:
         with conn.cursor() as cursor:
             cursor.execute(f"""
-                INSERT INTO {EVENTS_TABLE} (title, club, description, date, time, duration_minutes, location, picture_url, created_on)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id
-            """, (title, club_id, description, date, time, duration_minutes, location, picture_url, timestamp_obj ))
+                INSERT INTO {EVENTS_TABLE} (title, club, description, date, time, duration_minutes, location, longitude, latitude, picture_url, created_on)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id
+            """, (title, club_id, description, date, time, duration_minutes, location, longitude, latitude, picture_url, timestamp_obj ))
 
             event_id = cursor.fetchone()  
 

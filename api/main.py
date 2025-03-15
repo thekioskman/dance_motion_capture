@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException, UploadFile, Form, Body
+from fastapi import FastAPI, File, UploadFile, HTTPException, UploadFile, Form, Body, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -135,10 +135,12 @@ def create_club_post(request_body: ClubPost):
 
 @app.post("/clubevent/create")
 def create_club_event(request_body: ClubEvent):
+    print(request_body)
     try:
         create_club_event_db(request_body)
         return {"success": True}
     except ValueError as e:
+        print(e)
         raise HTTPException(status_code=400, detail=str(e))
 
 # User Login
