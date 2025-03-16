@@ -93,7 +93,7 @@ Then Tag image
 Then push image to Docker Registry (Docker Hub)
 1. For db:
    docker-compose build db
-   docker tag postgres_db tk2k2/cs494-db:latest
+   docker tag dance_motion_capture-db:latest tk2k2/cs494-db:latest
    docker push tk2k2/cs494-db:latest
 
 2. For api:
@@ -101,11 +101,14 @@ Then push image to Docker Registry (Docker Hub)
    docker tag dance_motion_capture-api:latest  tk2k2/cs494-api:latest
    docker push tk2k2/cs494-api:latest
 
-3. Run on ec2 instance:
-   docker stop cs494-api
-   docker rm cs494-api
-   docker pull tk2k2/cs494-api:latest
-   docker run -d --network host --name cs494-api tk2k2/cs494-api:latest
+3. Connect to the ec2 instance then modify the content of docker-compose.yml and .env as needed on the ec2 terminal.
+
+4. Deploy to ec2 instance with docker-compose:
+   docker-compose pull  # Pull latest images
+   docker-compose down  # Stop & remove old containers
+   docker-compose up -d  # Start updated containers
+
+5. The endpoint is: http://3.147.72.167:8000
 
 https://aws.plainenglish.io/deploy-docker-image-to-aws-ec2-in-5-minutes-4cd7518feacc
 
