@@ -44,24 +44,41 @@ def calculate_differences(keypoints1, keypoints2, joints):
     differences = []
     for kp1, kp2 in zip(keypoints1, keypoints2):
         if kp1 is None or kp2 is None:
-            differences.append(None)  # Skip frames with missing keypoints
+            differences.append(None)
             continue
 
-        # Calculate differences for all joints
-        total_diff = 0
-        total_weight = 0
-        joint_differences = {}
-        for joint_idx, joint_name, weight in joints:
-            diff = sqrt(
-                (kp1[joint_idx].x - kp2[joint_idx].x) ** 2 +
-                (kp1[joint_idx].y - kp2[joint_idx].y) ** 2
-            )
-            total_diff += diff * weight
-            total_weight += weight
-            joint_differences[joint_name] = diff
+        vec1 = []
+        vec2 = []
+        weights = []
 
-        mean_diff = total_diff / total_weight if total_weight > 0 else 0
-        differences.append((mean_diff, joint_differences))
+        for joint_idx, joint_name, weight in joints:
+            x1, y1 = kp1[joint_idx].x, kp1[joint_idx].y
+            x2, y2 = kp2[joint_idx].x, kp2[joint_idx].y
+
+            vec1.extend([x1, y1])
+            vec2.extend([x2, y2])
+            weights.extend([weight, weight])  # apply weights to both x and y
+
+        # Convert to numpy arrays
+        vec1 = np.array(vec1)
+        vec2 = np.array(vec2)
+        weights = np.array(weights)
+
+        # Apply weights
+        vec1_weighted = vec1 * weights
+        vec2_weighted = vec2 * weights
+
+        # L2 normalization
+        norm1 = np.linalg.norm(vec1_weighted)
+        norm2 = np.linalg.norm(vec2_weighted)
+
+        if norm1 == 0 or norm2 == 0:
+            cosine_distance = 1  # Max distance if one vector is zero
+        else:
+            cosine_similarity = np.dot(vec1_weighted, vec2_weighted) / (norm1 * norm2)
+            cosine_distance = 1 - cosine_similarity
+
+        differences.append((cosine_distance, {}))
 
     return differences
 
@@ -128,8 +145,8 @@ def compare_videos(video1_path, video2_path):
     return result
 
 
-# video1_path = "sample_videos/vid4.mp4"
-# video2_path = "sample_videos/vid6.mp4"
+# video1_path = "sample_videos/vid1.mp4"
+# video2_path = "sample_videos/vid2.mp4"
 # print(compare_videos(video1_path, video2_path))
 
 """
