@@ -28,8 +28,8 @@ app.add_middleware(
 UPLOAD_FOLDER = "/tmp"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-AWS_ACCESS_KEY = "AKIAQXUIXLGG3CCMRFMY"
-AWS_SECRET_KEY = "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"
+AWS_ACCESS_KEY = ""
+AWS_SECRET_KEY = ""
 S3_BUCKET_NAME = "fydp25stravadance"
 
 s3_client = boto3.client(
